@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
+import uuid as _uuid_mod
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -46,13 +47,21 @@ def create_refresh_token(
     data: Dict[str, Any],
     expires_delta: Optional[timedelta] = None,
 ) -> str:
-    """Create a long-lived refresh token (default: 7 days)."""
+    """Create a long-lived refresh token (default: 7 days).
+
+    Embeds a unique ``jti`` (JWT ID) so the token can be revoked
+    individually via the Redis token blacklist.
+    """
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (
         expires_delta
         or timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     )
-    to_encode.update({"exp": expire, "type": "refresh"})
+    to_encode.update({
+        "exp": expire,
+        "type": "refresh",
+        "jti": str(_uuid_mod.uuid4()),  # Unique token ID for revocation
+    })
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 

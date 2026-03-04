@@ -16,7 +16,7 @@ from app.infrastructure.database.postgres import Base
 class DataSource(Base):
     __tablename__ = "data_sources"
     __table_args__ = (
-        CheckConstraint("type IN ('csv', 'sql')", name="ck_data_sources_type"),
+        CheckConstraint("type IN ('csv', 'sql', 'document')", name="ck_data_sources_type"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -27,7 +27,7 @@ class DataSource(Base):
     )
     type: Mapped[str] = mapped_column(
         String(10), nullable=False
-    )  # "csv" | "sql"
+    )  # "csv" | "sql" | "document"
     name: Mapped[str] = mapped_column(Text, nullable=False)
     file_path: Mapped[Optional[str]] = mapped_column(
         Text, nullable=True

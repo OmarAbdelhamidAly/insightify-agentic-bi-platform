@@ -29,11 +29,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 def create_app() -> FastAPI:
     """Factory function to create and configure the FastAPI application."""
+    _is_prod = settings.ENV == "production"
     app = FastAPI(
         title="Autonomous Data Analyst Agent",
         description="Multi-tenant SaaS platform for AI-powered data analysis.",
         version="1.0.0",
         lifespan=lifespan,
+        # Hide API docs in production to reduce attack surface
+        docs_url=None if _is_prod else "/docs",
+        redoc_url=None if _is_prod else "/redoc",
+        openapi_url=None if _is_prod else "/openapi.json",
     )
 
     # Middleware

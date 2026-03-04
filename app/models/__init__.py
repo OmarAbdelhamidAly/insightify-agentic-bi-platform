@@ -6,6 +6,9 @@ from app.models.user import User
 from app.models.data_source import DataSource
 from app.models.analysis_job import AnalysisJob
 from app.models.analysis_result import AnalysisResult
+from app.models.metric import BusinessMetric
+from app.models.knowledge import KnowledgeBase, Document
+from app.models.policy import SystemPolicy
 
 __all__ = [
     "Base",
@@ -14,4 +17,8 @@ __all__ = [
     "DataSource",
     "AnalysisJob",
     "AnalysisResult",
+    "BusinessMetric",
+    "KnowledgeBase",
+    "Document",
+    "SystemPolicy",
 ]

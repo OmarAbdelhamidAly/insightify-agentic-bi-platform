@@ -1,4 +1,4 @@
-"""CORS, structured logging, and tenant-context middleware."""
+"""CORS, security headers, rate limiting, and request logging middleware."""
 
 from __future__ import annotations
 
@@ -9,14 +9,24 @@ from typing import Callable
 import structlog
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from app.infrastructure.config import settings
 
 logger = structlog.get_logger(__name__)
 
+# ── Rate Limiter (shared instance — imported by routers) ──────────────────
+limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+
 
 def setup_middleware(app: FastAPI) -> None:
     """Attach all middleware to the FastAPI application."""
+
+    # ── Rate Limiter ───────────────────────────────────────────
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
     # ── CORS ──────────────────────────────────────────────────
     app.add_middleware(
@@ -26,6 +36,21 @@ def setup_middleware(app: FastAPI) -> None:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # ── Security Headers ──────────────────────────────────────
+    @app.middleware("http")
+    async def security_headers_middleware(request: Request, call_next: Callable) -> Response:
+        """Add security-hardening HTTP response headers to every response."""
+        response: Response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        # Prevent sensitive API responses from being cached by browsers/proxies
+        if request.url.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-store"
+        return response
 
     # ── Request Logging ───────────────────────────────────────
     @app.middleware("http")

@@ -1,12 +1,12 @@
 """Analysis router — query, job status, history."""
 
-from __future__ import annotations
+
 
 import uuid
 from typing import Annotated, Optional
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,7 +33,7 @@ router = APIRouter(prefix="/api/v1/analysis", tags=["analysis"])
     status_code=status.HTTP_201_CREATED,
 )
 async def submit_query(
-    body: AnalysisQueryRequest,
+    body: Annotated[AnalysisQueryRequest, Body()],
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> AnalysisJobResponse:

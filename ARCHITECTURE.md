@@ -34,6 +34,7 @@ graph TD
 
     subgraph Domain["❤️ Domain Core (Entities)"]
         State["AnalysisState"]
+        RAG["RAG Context"]
     end
 
     API --> Switch
@@ -45,7 +46,25 @@ graph TD
     CSV --> Domain
     SQL --> Domain
     Shared --> Domain
+    Shared --> RAG
     Infrastructure -- Injects --> Modules
+```
+
+### 🗄️ Database Entity Relationship (ERD) - RAG Expansion
+```mermaid
+erDiagram
+    TENANT ||--o{ USER : "has"
+    TENANT ||--o{ DATA_SOURCE : "owns"
+    TENANT ||--o{ ANALYSIS_JOB : "runs"
+    TENANT ||--o{ BUSINESS_METRIC : "defines"
+    TENANT ||--o{ KNOWLEDGE_BASE : "manages"
+    TENANT ||--o{ SYSTEM_POLICY : "enforces"
+
+    USER ||--o{ ANALYSIS_JOB : "creates"
+    DATA_SOURCE ||--o{ ANALYSIS_JOB : "is source for"
+    ANALYSIS_JOB ||--|| ANALYSIS_RESULT : "produces"
+    
+    KNOWLEDGE_BASE ||--o{ DOCUMENT : "contains"
 ```
 
 ---

@@ -1,12 +1,12 @@
 """User management router — admin-only invite and remove."""
 
-from __future__ import annotations
+
 
 import uuid
 from typing import Annotated
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -39,7 +39,7 @@ async def list_users(
     status_code=status.HTTP_201_CREATED,
 )
 async def invite_user(
-    body: InviteUserRequest,
+    body: Annotated[InviteUserRequest, Body()],
     admin: Annotated[User, Depends(require_admin)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> UserResponse:
@@ -76,12 +76,12 @@ async def invite_user(
     return UserResponse.model_validate(user)
 
 
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
 async def remove_user(
     user_id: uuid.UUID,
     admin: Annotated[User, Depends(require_admin)],
     db: Annotated[AsyncSession, Depends(get_db)],
-):
+) -> Response:
     """Remove a user from the tenant (admin only)."""
 
     result = await db.execute(
@@ -111,3 +111,4 @@ async def remove_user(
         removed_by=str(admin.id),
         removed_user_id=str(user.id),
     )
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

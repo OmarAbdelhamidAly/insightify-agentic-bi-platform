@@ -12,12 +12,7 @@ from langchain_core.tools import ToolException, tool
 from pydantic import BaseModel, Field
 from sqlalchemy import create_engine, text
 
-
-# Forbidden SQL operations — NEVER allow these
-_FORBIDDEN_PATTERNS = re.compile(
-    r"\b(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|TRUNCATE|EXEC|EXECUTE|GRANT|REVOKE|MERGE)\b",
-    re.IGNORECASE,
-)
+from app.infrastructure.sql_guard import validate_select_only
 
 
 class SQLQueryInput(BaseModel):
@@ -44,22 +39,12 @@ def run_sql_query(
     - INSERT, UPDATE, DELETE, DROP, ALTER, etc. are IMMEDIATELY rejected.
     - All queries use parameterized execution. No string interpolation. Ever.
     """
-    # Strip and validate
+    # Strip and validate using centralized sql_guard (SELECT-only, no mutation keywords)
     clean_query = query.strip().rstrip(";")
-
-    # MUST start with SELECT or WITH (for CTEs)
-    if not re.match(r"^\s*(SELECT|WITH)\b", clean_query, re.IGNORECASE):
-        raise ToolException(
-            "BLOCKED: Only SELECT queries are allowed. "
-            "This platform is strictly read-only."
-        )
-
-    # Check for forbidden operations anywhere in the query
-    if _FORBIDDEN_PATTERNS.search(clean_query):
-        raise ToolException(
-            "BLOCKED: Query contains forbidden operations. "
-            "Only SELECT queries are allowed. No INSERT, UPDATE, DELETE, DROP, ALTER."
-        )
+    try:
+        validate_select_only(clean_query)
+    except ValueError as exc:
+        raise ToolException(str(exc))
 
     # Apply LIMIT if not present
     if not re.search(r"\bLIMIT\b", clean_query, re.IGNORECASE):

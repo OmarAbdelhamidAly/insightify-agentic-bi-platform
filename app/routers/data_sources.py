@@ -1,14 +1,15 @@
 """Data source router — upload CSV/XLSX/SQLite, connect SQL, list, delete."""
 
-from __future__ import annotations
 
+
+import io
 import os
 import uuid
 from typing import Annotated
 
 import pandas as pd
 import structlog
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Response, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, File, HTTPException, Response, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -151,13 +152,32 @@ async def upload_file(
             detail="Filename is required",
         )
 
-    ext = os.path.splitext(file.filename)[1].lower()
+    # Guard against path traversal in filename
+    safe_name = os.path.basename(file.filename)
+    if not safe_name or safe_name != file.filename.replace("\\", "/").split("/")[-1]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid filename",
+        )
+
+    ext = os.path.splitext(safe_name)[1].lower()
     ALLOWED = (".csv", ".xlsx", ".sqlite", ".db", ".sql")
     if ext not in ALLOWED:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Supported file types: {', '.join(ALLOWED)}",
         )
+
+    # Enforce upload size limit BEFORE writing to disk
+    MAX_BYTES = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
+    contents = await file.read()
+    if len(contents) > MAX_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"File too large. Maximum allowed size is {settings.MAX_UPLOAD_SIZE_MB} MB.",
+        )
+    # Reset the file-like object so the rest of the handler can re-read it
+    file.file = io.BytesIO(contents)
 
     # Save file to tenant directory
     tenant_id_str = str(admin.tenant_id)
@@ -289,7 +309,7 @@ async def upload_file(
     status_code=status.HTTP_201_CREATED,
 )
 async def connect_sql(
-    body: SQLConnectionRequest,
+    body: Annotated[SQLConnectionRequest, Body()],
     admin: Annotated[User, Depends(require_admin)],
     db: Annotated[AsyncSession, Depends(get_db)],
     background_tasks: BackgroundTasks,
@@ -336,12 +356,12 @@ async def connect_sql(
     return DataSourceResponse.model_validate(source)
 
 
-@router.delete("/{source_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+@router.delete("/{source_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
 async def delete_data_source(
     source_id: uuid.UUID,
     admin: Annotated[User, Depends(require_admin)],
     db: Annotated[AsyncSession, Depends(get_db)],
-):
+) -> Response:
     """Delete a data source (admin only)."""
 
     result = await db.execute(
@@ -369,6 +389,7 @@ async def delete_data_source(
         user_id=str(admin.id),
         source_id=str(source.id),
     )
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/{source_id}/dashboard", response_model=DataSourceResponse)

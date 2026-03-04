@@ -35,6 +35,9 @@ class AnalysisResult(Base):
     follow_up_suggestions: Mapped[Optional[List[str]]] = mapped_column(
         JSON, nullable=True
     )  # List of follow-up questions
+    embedding: Mapped[Optional[List[float]]] = mapped_column(
+        JSON, nullable=True
+    )  # Vector embedding for historical memory search
 
     # Relationships
     job = relationship("AnalysisJob", back_populates="result")
