@@ -77,11 +77,30 @@ async def sql_execution_node(state: AnalysisState) -> Dict[str, Any]:
             "params": params,
             "limit": 1000,
         })
+        
+        row_count = result.get("row_count", 0)
+        
+        # ── Self-Reflection Trigger ──
+        # If 0 rows are found and we haven't reached the reflection limit
+        reflection_count = state.get("reflection_count", 0)
+        if row_count == 0 and reflection_count < 1:
+            return {
+                "analysis_results": {
+                    **state.get("analysis_results", {}),
+                    **result,
+                },
+                "reflection_context": f"The query '{query}' executed successfully but returned 0 rows. This might be due to a strict filter (e.g. date group that doesn't exist) or search term case-sensitivity. Please try to broaden the query or check the distribution of data in relevant columns.",
+                "reflection_count": reflection_count + 1,
+                "error": None
+            }
+
         return {
             "analysis_results": {
                 **state.get("analysis_results", {}),
                 **result,
+                "reflection_count": state.get("reflection_count", 0)
             },
+            "reflection_context": None, # Clear reflection context if rows found
             "error": None
         }
     except Exception as e:
@@ -161,8 +180,22 @@ def build_sql_graph() -> StateGraph:
         },
     )
 
-    # 5. Execution -> Output chain
-    graph.add_edge("execution", "visualization")
+    # 5. Execution -> Reflection OR Visualization
+    def route_after_execution(state: AnalysisState) -> Literal["reflection", "visualization"]:
+        if state.get("reflection_context"):
+            return "reflection"
+        return "visualization"
+
+    graph.add_conditional_edges(
+        "execution",
+        route_after_execution,
+        {
+            "reflection": "analysis_generator",
+            "visualization": "visualization",
+        }
+    )
+
+    # 6. Visualization -> Output chain
     graph.add_edge("visualization", "insight")
     graph.add_edge("insight", "recommendation")
     graph.add_edge("recommendation", "output_assembler")

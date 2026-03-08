@@ -17,6 +17,8 @@ from app.domain.analysis.entities import AnalysisState
 from app.infrastructure.config import settings
 from app.modules.shared.tools.load_data_source import get_connection_string
 from app.modules.shared.utils.retrieval import get_kb_context
+from app.modules.sql.utils.sql_validator import SQLValidator
+from app.modules.sql.tools.run_sql_query import get_engine
 
 # ── Prompt ────────────────────────────────────────────────────────────────────
 
@@ -28,7 +30,8 @@ Rules:
 - Use parameterised query syntax (:param_name) for any user-supplied values.
 - Keep results under 1000 rows using LIMIT.
 - Use the table and column names exactly as they appear in the schema.
-- **CRITICAL**: Use the "Business Metrics Dictionary" to understand how to calculate specific business terms (like 'active user' or 'revenue'). If a metric has a 'formula', use that logic in your SQL.
+- **CRITICAL**: Use the "Business Metrics Dictionary" as the primary definition for terms. If a metric exists there, use its 'formula'. DO NOT guess or use hardcoded assumptions if a metric is provided.
+- For joins, always refer to the Data Relationships (ERD) provided.
 
 Respond ONLY with valid JSON:
 {{
@@ -77,6 +80,14 @@ RULES:
 
 Current Business Metrics: {metrics}
 Knowledge Base Context: {kb_context}
+
+VALIDATION FEEDBACK:
+If the `run_sql_query` tool or the validator returns errors, you MUST fix them in the next turn.
+Always use "EXPLAIN" (via tool call) if you are uncertain about a schema path.
+
+REFLECTION GUIDANCE:
+If `reflection_context` is provided, it means your previous query returned 0 rows. 
+Analyze the schema and sample values to understand why. For example, if you filtered by '2024' but samples show only '2023', adjust your query to be more relevant.
 """
 
 async def analysis_agent(state: AnalysisState) -> Dict[str, Any]:
@@ -96,10 +107,13 @@ async def analysis_agent(state: AnalysisState) -> Dict[str, Any]:
     # Add History if present
     if state.get("history"):
         for msg in state["history"]:
-            if msg["role"] == "user":
-                messages.append(HumanMessage(content=msg["content"]))
-            elif msg["role"] == "assistant":
-                messages.append(SystemMessage(content=msg["content"])) # Simplified history
+            role = msg.get("role")
+            content = msg.get("content", "")
+            if role == "user":
+                messages.append(HumanMessage(content=content))
+            elif role == "assistant":
+                # Ensure the LLM recognizes its own previous SQL generations
+                messages.append(SystemMessage(content=f"PREVIOUS_TURN_SQL: {content}"))
 
     # Add Error/Violation hint if retrying
     error_hint = ""
@@ -107,6 +121,10 @@ async def analysis_agent(state: AnalysisState) -> Dict[str, Any]:
         error_hint += f"\n[RETRY HINT] Previous attempt failed: {state['error']}"
     if state.get("policy_violation"):
         error_hint += f"\n[POLICY VIOLATION] Previous attempt rejected: {state['policy_violation']}"
+    if state.get("reflection_context"):
+        error_hint += f"\n[REFLECTION] {state['reflection_context']}"
+    if state.get("user_feedback"):
+        error_hint += f"\n[USER FEEDBACK] The user requested a refinement: {state['user_feedback']}"
 
     # Current Request
     compact_schema = _format_compact_schema(state.get('schema_summary', {}))
@@ -161,8 +179,24 @@ async def analysis_agent(state: AnalysisState) -> Dict[str, Any]:
     if not generated_sql:
         return {"error": "Failed to generate a valid SQL query after ReAct iterations.", "intermediate_steps": steps}
 
+    # ── Final Validation Check ──
+    # One last verification using the 3-layer validator before exiting.
+    connection_string = get_connection_string(state)
+    engine = get_engine(connection_string) if connection_string else None
+    validator = SQLValidator(engine, state.get("schema_summary"))
+    
+    validation = validator.validate(generated_sql)
+    if not validation["valid"]:
+        # If the final query is STILL invalid, return the error to trigger a Graph retry
+        return {
+            "error": f"Post-generation validation failed: {', '.join(validation['errors'])}",
+            "intermediate_steps": steps,
+            "validation_results": validation
+        }
+
     return {
         "generated_sql": generated_sql,
+        "validation_results": validation,
         "analysis_results": {
             "plan": {"query": generated_sql, "params": params},
             "source_type": "sql",
@@ -199,33 +233,39 @@ def _parse_json(content: str) -> Dict[str, Any]:
 
 
 def _format_compact_schema(schema_summary: Dict[str, Any]) -> str:
-    """Format the schema summary into a highly compact, token-efficient string."""
+    """Format the schema summary into an ultra-dense, token-saving string."""
     if not schema_summary.get("tables"):
-        return json.dumps(schema_summary)
+        return "{}"
         
     lines = []
     
-    # Include ERD to strictly define joins
+    # 1. Relationships (Essential for Joins)
     erd = schema_summary.get("mermaid_erd")
     if erd:
-        lines.append("Data Relationships (ERD):")
-        lines.append(erd)
+        # Keep ERD as is, it's already a very dense representation of relationships
+        lines.append("Relationships:")
+        lines.append(erd.replace("erDiagram", "").strip())
         lines.append("")
         
-    lines.append("Tables & Columns:")
+    # 2. Tables & Columns (High-Density)
+    lines.append("Definition (table: col(type) [eg: sample]):")
     for t in schema_summary.get("tables", []):
-        col_strs = []
+        col_parts = []
         for c in t.get("columns", []):
-            col_str = f"{c['name']} ({c['dtype']})"
+            # Use shorthand: * for PK, type in parens
+            label = f"{c['name']}({c['dtype']})"
             if c.get("primary_key"):
-                col_str += " PK"
-            if c.get("sample_values"):
-                # heavily truncate samples to just 1 token-friendly example
-                samples = [str(s)[:15] for s in c['sample_values'][:1]]
-                if samples and samples[0]:
-                    col_str += f" [eg: {samples[0]}]"
-            col_strs.append(col_str)
-        lines.append(f"- {t['table']}: " + ", ".join(col_strs))
+                label += "*"
+            
+            # Smart sample pruning: only show if strictly useful and keep it short
+            samples = c.get("sample_values", [])
+            if samples and samples[0] and len(str(samples[0])) > 0:
+                s = str(samples[0])[:12] # Keep it very short
+                label += f"[{s}]"
+            
+            col_parts.append(label)
+        
+        lines.append(f"- {t['table']}: {', '.join(col_parts)}")
         
     return "\n".join(lines)
 

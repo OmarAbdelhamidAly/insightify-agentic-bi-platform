@@ -68,92 +68,92 @@ def sql_schema_discovery(
     engine = create_engine(connection_string)
     try:
         inspector = inspect(engine)
-
-        # Detect dialect
-        dialect = engine.dialect.name  # postgresql | mysql | sqlite
-
-        # Resolve schema param
+        dialect = engine.dialect.name
         effective_schema = schema_name
         if effective_schema is None and dialect == "postgresql":
             effective_schema = "public"
 
         tables = inspector.get_table_names(schema=effective_schema)
+        
+        from concurrent.futures import ThreadPoolExecutor
+        
+        def fetch_table_metadata(table_name):
+            """Fetch columns, PKs, FKs, RowCount and Samples for a single table."""
+            # Use a fresh engine per thread for safety if needed, 
+            # though SQLAlchemy engines are generally thread-safe.
+            with engine.connect() as conn:
+                columns = inspector.get_columns(table_name, schema=effective_schema)
+                pk_constraint = inspector.get_pk_constraint(table_name, schema=effective_schema)
+                pk_cols = set(pk_constraint.get("constrained_columns", []))
+                
+                # Foreign Keys
+                fks = inspector.get_foreign_keys(table_name, schema=effective_schema)
+                t_foreign_keys = []
+                for fk in fks:
+                    for constrained, referred in zip(fk["constrained_columns"], fk["referred_columns"]):
+                        t_foreign_keys.append({
+                            "from_table": table_name,
+                            "from_col": constrained,
+                            "to_table": fk["referred_table"],
+                            "to_col": referred
+                        })
 
-        schema_tables: List[Dict[str, Any]] = []
-        foreign_keys: List[Dict[str, Any]] = []
-        total_columns = 0
+                col_infos = []
+                for col in columns:
+                    col_info = {
+                        "name": col["name"],
+                        "dtype": str(col["type"]),
+                        "nullable": col.get("nullable", True),
+                        "primary_key": col["name"] in pk_cols,
+                        "sample_values": []
+                    }
 
-        for table_name in tables:
-            columns = inspector.get_columns(table_name, schema=effective_schema)
-            pk_constraint = inspector.get_pk_constraint(table_name, schema=effective_schema)
-            pk_cols = set(pk_constraint.get("constrained_columns", []))
-            
-            # Fetch Foreign Keys for ERD
-            fks = inspector.get_foreign_keys(table_name, schema=effective_schema)
-            for fk in fks:
-                for constrained, referred in zip(fk["constrained_columns"], fk["referred_columns"]):
-                    foreign_keys.append({
-                        "from_table": table_name,
-                        "from_col": constrained,
-                        "to_table": fk["referred_table"],
-                        "to_col": referred
-                    })
-
-            col_infos: List[Dict[str, Any]] = []
-            for col in columns:
-                col_info: Dict[str, Any] = {
-                    "name": col["name"],
-                    "dtype": str(col["type"]),
-                    "nullable": col.get("nullable", True),
-                    "primary_key": col["name"] in pk_cols,
-                }
-
-                # Collect sample values safely
-                if sample_rows > 0:
-                    try:
-                        qualified = (
-                            f'"{effective_schema}"."{table_name}"'
-                            if effective_schema
-                            else f'"{table_name}"'
-                        )
-                        with engine.connect() as conn:
+                    # Collect sample values
+                    if sample_rows > 0:
+                        try:
+                            qualified = f'"{effective_schema}"."{table_name}"' if effective_schema else f'"{table_name}"'
+                            # Use conn from the outer scope's context
                             rows = conn.execute(
-                                text(
-                                    f"SELECT {_quoted(col['name'])} FROM {qualified} "
-                                    f"WHERE {_quoted(col['name'])} IS NOT NULL LIMIT :n"
-                                ),
+                                text(f"SELECT {_quoted(col['name'])} FROM {qualified} WHERE {_quoted(col['name'])} IS NOT NULL LIMIT :n"),
                                 {"n": sample_rows},
                             ).fetchall()
-                        col_info["sample_values"] = [str(r[0]) for r in rows]
-                    except Exception:
-                        col_info["sample_values"] = []
+                            col_info["sample_values"] = [str(r[0]) for r in rows]
+                        except Exception:
+                            pass
+                    col_infos.append(col_info)
 
-                col_infos.append(col_info)
-                total_columns += 1
+                # Row Count
+                row_count = None
+                try:
+                    qualified = f'"{effective_schema}"."{table_name}"' if effective_schema else f'"{table_name}"'
+                    row_count = conn.execute(text(f"SELECT COUNT(*) FROM {qualified}")).scalar()
+                except Exception:
+                    pass
 
-            # Get approximate row count
-            row_count: Optional[int] = None
-            try:
-                qualified = (
-                    f'"{effective_schema}"."{table_name}"'
-                    if effective_schema
-                    else f'"{table_name}"'
-                )
-                with engine.connect() as conn:
-                    result = conn.execute(text(f"SELECT COUNT(*) FROM {qualified}"))
-                    row_count = result.scalar()
-            except Exception:
-                pass
-
-            schema_tables.append(
-                {
-                    "table": table_name,
-                    "schema": effective_schema,
-                    "columns": col_infos,
-                    "column_count": len(col_infos),
-                    "row_count": row_count,
+                return {
+                    "table": {
+                        "table": table_name,
+                        "schema": effective_schema,
+                        "columns": col_infos,
+                        "column_count": len(col_infos),
+                        "row_count": row_count,
+                    },
+                    "fks": t_foreign_keys
                 }
-            )
+
+        # Execute discovery in parallel
+        schema_tables = []
+        foreign_keys = []
+        total_columns = 0
+        
+        # CPU-bound tasks like SQL parsing/inspection benefit from threads when blocked on I/O (DB queries)
+        with ThreadPoolExecutor(max_workers=min(len(tables), 10)) as executor:
+            results = list(executor.map(fetch_table_metadata, tables))
+            
+        for res in results:
+            schema_tables.append(res["table"])
+            foreign_keys.extend(res["fks"])
+            total_columns += len(res["table"]["columns"])
 
         output = {
             "dialect": dialect,

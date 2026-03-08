@@ -52,16 +52,24 @@ async def data_discovery_agent(state: AnalysisState) -> Dict[str, Any]:
         # ── 2. Semantic Filtering (RAG Filter) ──
         # If the question is specific, prune irrelevant tables to save context space
         question = state.get("question", "").lower()
+        metrics = state.get("business_metrics", [])
+        
+        # Build interest terms from question AND business metrics
+        interest_terms = {question}
+        for m in metrics:
+            interest_terms.add(m.get("name", "").lower())
+            interest_terms.add(m.get("definition", "").lower())
+            
         all_tables = raw.get("tables", [])
         
         if len(all_tables) > 10 and question:
-            # Simple keyword-based filtering for now (could be upgraded to full embedding-based RAG)
             relevant_tables = []
             for t in all_tables:
                 t_name = t["table"].lower()
-                # Check if table name or any column name appears in the question
                 cols = [c["name"].lower() for c in t["columns"]]
-                if any(kw in question for kw in [t_name] + cols):
+                
+                # Check if table name or columns overlap with our interest terms
+                if any(any(kw in term for kw in [t_name] + cols) for term in interest_terms):
                     relevant_tables.append(t)
             
             # If we found relevant tables, filter the summary

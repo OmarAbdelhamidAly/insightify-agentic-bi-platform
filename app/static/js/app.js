@@ -94,39 +94,39 @@ function renderAuth() {
     <div class="auth-container">
       <div class="auth-card">
         <div class="auth-logo">
-          <div class="logo-icon">🧠</div>
+          <div class="logo-icon">📊</div>
           <h1>DataAnalyst.AI</h1>
-          <p>Premium Autonomous Analysis</p>
+          <p>Enterprise Business Intelligence</p>
         </div>
         <div class="auth-tabs">
           <button class="auth-tab active" data-tab="login" id="tab-login">Sign In</button>
-          <button class="auth-tab" data-tab="register" id="tab-register">Sign Up</button>
+          <button class="auth-tab" data-tab="register" id="tab-register">Register</button>
         </div>
         <div id="auth-form-login">
           <div class="form-group">
-            <label class="form-label">Email Address</label>
-            <input type="email" class="form-input" id="login-email" placeholder="you@company.com">
+            <label class="form-label">Work Email</label>
+            <input type="email" class="form-input" id="login-email" placeholder="name@company.com">
           </div>
           <div class="form-group">
             <label class="form-label">Password</label>
             <input type="password" class="form-input" id="login-password" placeholder="••••••••">
           </div>
-          <button class="btn btn-primary btn-full" id="btn-login">Sign In — Let's Go</button>
+          <button class="btn btn-primary btn-full" id="btn-login">Sign In</button>
         </div>
         <div id="auth-form-register" class="hidden">
           <div class="form-group">
-            <label class="form-label">Organization Name</label>
+            <label class="form-label">Organization</label>
             <input type="text" class="form-input" id="reg-tenant" placeholder="Acme Corp">
           </div>
           <div class="form-group">
-            <label class="form-label">Work Email</label>
-            <input type="email" class="form-input" id="reg-email" placeholder="you@company.com">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="reg-email" placeholder="name@company.com">
           </div>
           <div class="form-group">
-            <label class="form-label">Choose Password</label>
-            <input type="password" class="form-input" id="reg-password" placeholder="Min 8 characters">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-input" id="reg-password" placeholder="Min. 8 characters">
           </div>
-          <button class="btn btn-primary btn-full" id="btn-register">Create Global Account</button>
+          <button class="btn btn-primary btn-full" id="btn-register">Create Account</button>
         </div>
       </div>
     </div>
@@ -204,48 +204,48 @@ function renderApp() {
   const app = document.getElementById('app');
   app.innerHTML = `
     <div class="app-layout">
-      <aside class="sidebar" id="sidebar" style="background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)); border-right: 1px solid var(--glass-border);">
+      <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
-          <div class="sidebar-brand-icon" style="color:var(--primary-400); margin-right:0.5rem; display:flex;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a5 5 0 0 0-5 5v2a5 5 0 0 0-2 4.41V16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2.59A5 5 0 0 0 17 9V7a5 5 0 0 0-5-5z"/></svg>
+          <div class="sidebar-brand-icon">
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a5 5 0 0 0-5 5v2a5 5 0 0 0-2 4.41V16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2.59A5 5 0 0 0 17 9V7a5 5 0 0 0-5-5z"/></svg>
           </div>
           <span class="sidebar-brand-text">DATAANALYST.AI</span>
         </div>
         <nav class="sidebar-nav">
           <div class="nav-section">Insights</div>
           <button class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
-            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M21 12H3"/><path d="M12 3v18"/></svg></span> Overview
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M21 12H3"/><path d="M12 3v18"/></svg></span> Overview
           </button>
           <button class="nav-item" data-page="analysis" onclick="navigate('analysis')">
-            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span> Deep Analysis
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span> Deep Analysis
           </button>
           <button class="nav-item" data-page="enrichment" onclick="navigate('enrichment')">
-            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span> Enrichment & Rules
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span> Metrics & Rules
           </button>
-          <div class="nav-section">Management</div>
+          <div class="nav-section">Data Hub</div>
           <button class="nav-item" data-page="data-sources" onclick="navigate('data-sources')">
-            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span> Data Sources
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span> Data Sources
           </button>
           ${isAdmin ? `
           <button class="nav-item" data-page="users" onclick="navigate('users')">
-            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Team Access
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Team Access
           </button>
           ` : ''}
           <div class="nav-section">System</div>
           <button class="nav-item" data-page="about" onclick="navigate('about')">
-            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span> About
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span> About
           </button>
         </nav>
-        <div class="sidebar-user" style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="sidebar-user">
           <div style="display:flex; align-items:center; gap:0.75rem;">
             <div class="sidebar-avatar">${initials}</div>
             <div class="sidebar-user-info">
               <div class="sidebar-user-name">${user.email.split('@')[0]}</div>
-              <div class="sidebar-user-role">${user.role} Member</div>
+              <div class="sidebar-user-role">${user.role.toUpperCase()}</div>
             </div>
           </div>
-          <button class="btn-icon" onclick="logout()" title="Sign out" style="border:none;background:transparent;color:var(--text-muted);cursor:pointer;padding:0.5rem;font-size:1.1rem;transition:color 0.2s;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          <button class="btn-icon" onclick="logout()" title="Sign out" style="border:none;background:transparent;color:rgba(255,255,255,0.4);">
+             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           </button>
         </div>
       </aside>
@@ -266,46 +266,45 @@ async function renderDashboard(container) {
   container.innerHTML = `
     <div class="page-header">
       <div>
-        <h1 class="page-title">Executive Overview</h1>
-        <p class="page-subtitle">Real-time intelligence and system health</p>
+        <h1 class="page-title">Executive Summary</h1>
+        <p class="page-subtitle">Platform health and intelligence across all data streams</p>
       </div>
     </div>
     <div class="stats-grid" id="stats-grid">
       <div class="stat-card">
-        <div class="stat-label">Active Sources</div>
+        <div class="stat-label">Connected Data</div>
         <div class="stat-value" id="stat-sources">—</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Total Analyses</div>
+        <div class="stat-label">Total Jobs</div>
         <div class="stat-value" id="stat-analyses">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Collaborators</div>
-        <div class="stat-value" id="stat-users">—</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Success Rate</div>
         <div class="stat-value" id="stat-success">—</div>
       </div>
+      <div class="stat-card">
+        <div class="stat-label">Collaborators</div>
+        <div class="stat-value" id="stat-users">—</div>
+      </div>
     </div>
-    <div style="display:grid; grid-template-columns: 2fr 1fr; gap: 2.5rem;">
+    <div style="display:grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
       <div class="card">
-        <div class="card-header"><span class="card-title">Recent Intelligence</span></div>
+        <div class="card-header"><span class="card-title">Recent Activity</span></div>
         <div class="card-body" id="recent-analyses" style="padding:0;">
           <div class="empty-state" style="padding:4rem;">
-            <div class="empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
-            <h3>No activity yet</h3>
-            <p>Initiate an analysis to see insights here.</p>
+            <h3>No data to display</h3>
+            <p>Initiate an analysis to populate this view.</p>
           </div>
         </div>
       </div>
       <div class="card">
-        <div class="card-header"><span class="card-title">Quick Control</span></div>
+        <div class="card-header"><span class="card-title">Quick Actions</span></div>
         <div class="card-body">
-          <div style="display:flex;flex-direction:column;gap:1rem;">
-            <button class="btn btn-secondary btn-full" onclick="navigate('data-sources')">Manage Data</button>
-            <button class="btn btn-primary btn-full" onclick="navigate('analysis')">New Deep Analysis</button>
-            ${getUser()?.role === 'admin' ? '<button class="btn btn-secondary btn-full" onclick="navigate(\'users\')">Team Access</button>' : ''}
+          <div style="display:flex;flex-direction:column;gap:0.75rem;">
+            <button class="btn btn-primary btn-full" onclick="navigate('analysis')">Initiate Strategic Analysis</button>
+            <button class="btn btn-secondary btn-full" onclick="navigate('data-sources')">Audit Data Inventory</button>
+            ${getUser()?.role === 'admin' ? '<button class="btn btn-secondary btn-full" onclick="navigate(\'users\')">Identity & Access Control</button>' : ''}
           </div>
         </div>
       </div>
@@ -336,7 +335,7 @@ async function renderDashboard(container) {
             <thead><tr><th>Question</th><th>Status</th><th>Date</th></tr></thead>
             <tbody>${recent.map(j => `<tr>
               <td>${j.question?.substring(0, 50) || '—'}${j.question?.length > 50 ? '...' : ''}</td>
-              <td><span class="badge badge-${j.status === 'done' ? 'success' : j.status === 'error' ? 'error' : 'warning'}">${j.status}</span></td>
+              <td><span class="badge badge-${j.status === 'done' ? 'success' : j.status === 'error' ? 'error' : 'warning'}">${j.status === 'awaiting_approval' ? 'Pending Review' : j.status.replace('_', ' ').toUpperCase()}</span></td>
               <td>${new Date(j.created_at || Date.now()).toLocaleDateString()}</td>
             </tr>`).join('')}</tbody>
           </table></div>`;
@@ -360,10 +359,10 @@ async function renderDataSources(container) {
   container.innerHTML = `
     <div class="page-header">
       <div>
-        <h1 class="page-title">Data Sources</h1>
-        <p class="page-subtitle">Manage files and database connections</p>
+        <h1 class="page-title">Data Inventory</h1>
+        <p class="page-subtitle">Manage enterprise data assets and analytical connections</p>
       </div>
-      ${isAdmin ? `<div style="display:flex;gap:1rem;">
+      ${isAdmin ? `<div style="display:flex;gap:0.75rem;">
         <button class="btn btn-secondary" onclick="showSQLModal()">🔗 Connect SQL</button>
         <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">📤 Upload File</button>
         <input type="file" id="file-input" accept=".csv,.xlsx,.sqlite,.db,.sql" class="hidden">
@@ -371,47 +370,55 @@ async function renderDataSources(container) {
     </div>
 
     ${isAdmin ? `
-    <div class="upload-zone" id="upload-zone">
-      <div class="upload-icon">�</div>
-      <div class="upload-text">Drag & drop files here, or <span>browse</span></div>
-    </div>
-    
-    <!-- Upload Progress Card -->
-    <div class="upload-status-card" id="upload-status-card">
-      <div class="upload-status-header">
-        <span id="upload-filename">uploading_file.csv</span>
-        <span id="upload-percentage">0%</span>
+    <div class="card" style="margin-bottom:2rem; padding:3rem; border-style:dashed; background:var(--bg-surface);">
+      <div class="upload-zone" id="upload-zone" style="border:none; background:transparent; padding:0;">
+        <div class="upload-icon" style="font-size:3rem; margin-bottom:1rem;">📂</div>
+        <div class="upload-text" style="font-size:1.1rem; color:var(--text-dim);">Drag & drop enterprise files here, or <span style="color:var(--accent-blue); font-weight:700; text-decoration:underline;">browse</span></div>
       </div>
-      <div class="progress-container" style="display: block; margin: 0;">
-        <div class="progress-bar" id="upload-progress-bar"></div>
+      
+      <!-- Upload Progress Card -->
+      <div class="upload-status-card" id="upload-status-card" style="margin-top:2rem; max-width:500px; margin-left:auto; margin-right:auto;">
+        <div class="upload-status-header">
+          <span id="upload-filename">File name</span>
+          <span id="upload-percentage">0%</span>
+        </div>
+        <div class="progress-container" style="display: block; margin: 0;">
+          <div class="progress-bar" id="upload-progress-bar"></div>
+        </div>
       </div>
     </div>
     ` : ''}
 
-    <div class="card" style="margin-top:2.5rem;">
+    <div class="card">
       <div class="card-header"><span class="card-title">Connected Sources</span></div>
-      <div class="card-body" id="sources-list">
-        <div style="text-align:center;padding:3rem;"><div class="spinner" style="margin:0 auto;"></div></div>
+      <div class="card-body" id="sources-list" style="padding:1.5rem;">
+        <div style="text-align:center;padding:4rem;"><div class="spinner" style="margin:0 auto;"></div></div>
       </div>
     </div>
     <!-- SQL Modal -->
     <div class="modal-overlay" id="sql-modal">
       <div class="modal">
-        <div class="modal-header"><h3 class="modal-title">Connect SQL Database</h3><button class="btn-icon" onclick="closeSQLModal()">✕</button></div>
+        <div class="modal-header"><h3 class="modal-title">Register SQL Connection</h3><button class="btn-icon" onclick="closeSQLModal()">✕</button></div>
         <div class="modal-body">
-          <div class="form-group"><label class="form-label">Connection Name</label><input class="form-input" id="sql-name" placeholder="Production DB"></div>
-          <div class="form-group"><label class="form-label">Engine</label>
-            <select class="form-select" id="sql-engine"><option value="postgresql">PostgreSQL</option><option value="mysql">MySQL</option><option value="mssql">MS SQL Server</option></select>
+          <div class="form-group"><label class="form-label">Resource Name</label><input class="form-input" id="sql-name" placeholder="e.g. Production Data Lake"></div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+              <div class="form-group"><label class="form-label">Engine</label>
+                <select class="form-select" id="sql-engine"><option value="postgresql">PostgreSQL</option><option value="mysql">MySQL</option><option value="mssql">MS SQL Server</option></select>
+              </div>
+              <div class="form-group"><label class="form-label">Database Name</label><input class="form-input" id="sql-database" placeholder="analytics_db"></div>
           </div>
-          <div class="form-group"><label class="form-label">Host</label><input class="form-input" id="sql-host" placeholder="localhost"></div>
-          <div class="form-group"><label class="form-label">Port</label><input class="form-input" type="number" id="sql-port" value="5432"></div>
-          <div class="form-group"><label class="form-label">Database</label><input class="form-input" id="sql-database" placeholder="mydb"></div>
-          <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="sql-username" placeholder="readonly_user"></div>
-          <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="sql-password"></div>
+          <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1.5rem;">
+              <div class="form-group"><label class="form-label">Host / IP</label><input class="form-input" id="sql-host" placeholder="db.company.com"></div>
+              <div class="form-group"><label class="form-label">Port</label><input class="form-input" type="number" id="sql-port" value="5432"></div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+              <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="sql-username" placeholder="read_user"></div>
+              <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="sql-password"></div>
+          </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" onclick="closeSQLModal()">Cancel</button>
-          <button class="btn btn-primary" id="btn-connect-sql">Connect</button>
+          <button class="btn btn-primary" id="btn-connect-sql">Initialize Connection</button>
         </div>
       </div>
     </div>
@@ -526,21 +533,23 @@ async function loadSources() {
       }[s.auto_analysis_status] || '';
 
       return `
-        <div class="source-item card" style="display:flex;align-items:center;padding:1.5rem;margin-bottom:1rem;gap:1.5rem;background:rgba(255,255,255,0.02);border:1px solid var(--glass-border);border-radius:14px;transition:var(--transition);text-decoration:none;">
-          <div class="source-icon ${s.type}" style="width:48px;height:48px;background:rgba(255,255,255,0.05);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">
+        <div class="source-item" style="display:flex; align-items:center; padding:1.25rem; margin-bottom:0.75rem; gap:1.25rem; background:var(--primary-50); border:1px solid var(--border-light); border-radius:var(--radius-md); transition:var(--transition);">
+          <div class="source-icon ${s.type}" style="width:40px; height:40px; background:var(--bg-card); border:1px solid var(--border-light); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; font-size:1.25rem; box-shadow:var(--shadow-sm);">
             ${s.type === 'csv' ? '📄' : '🗄️'}
           </div>
           <div class="source-info" style="flex:1;">
-            <div class="source-name" style="font-weight:700;font-size:1.1rem;margin-bottom:0.25rem;">${s.name}</div>
-            <div class="source-meta" style="font-size:0.85rem;color:var(--text-muted);"> ${s.type.toUpperCase()} · ${meta}</div>
+            <div class="source-name" style="font-weight:700; font-size:1rem; color:var(--text-main); margin-bottom:0.15rem;">${s.name}</div>
+            <div class="source-meta" style="font-size:0.8rem; color:var(--text-muted); font-weight:500;"> ${s.type.toUpperCase()} • ${meta}</div>
           </div>
-          <div class="source-status" style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;font-weight:600;color:var(--primary-400);">
-            ${statusIcon} ${statusLabel}
+          <div class="source-status">
+            <span class="badge ${s.auto_analysis_status === 'done' ? 'badge-success' : s.auto_analysis_status === 'failed' ? 'badge-error' : 'badge-warning'}">
+                ${statusIcon} ${statusLabel || s.auto_analysis_status.toUpperCase()}
+            </span>
           </div>
-          <div style="display:flex;gap:0.75rem;">
-            ${s.auto_analysis_status === 'done' ? `<button class="btn btn-sm btn-primary" onclick="openSourceDashboard('${s.id}')">📊 Metrics</button>` : ''}
-            <button class="btn btn-sm btn-secondary" onclick="navigateToAnalysis('${s.id}')">🔍 Query</button>
-            ${getUser()?.role === 'admin' ? `<button class="btn btn-sm btn-danger" onclick="deleteSource('${s.id}')">Delete</button>` : ''}
+          <div style="display:flex; gap:0.5rem;">
+            ${s.auto_analysis_status === 'done' ? `<button class="btn btn-sm btn-primary" onclick="openSourceDashboard('${s.id}')">Metrics</button>` : ''}
+            <button class="btn btn-sm btn-secondary" onclick="navigateToAnalysis('${s.id}')">Query</button>
+            ${getUser()?.role === 'admin' ? `<button class="btn btn-sm btn-secondary" style="color:var(--error);" onclick="deleteSource('${s.id}')">Delete</button>` : ''}
           </div>
         </div>
       `;
@@ -585,53 +594,47 @@ async function renderAnalysis(container) {
   let qText = window._pageParams?.q || '';
 
   container.innerHTML = `
-    <div class="page-header" style="margin-bottom:2rem;">
+    <div class="page-header">
       <div>
-        <h1 class="page-title">Deep Analysis</h1>
-        <p class="page-subtitle">Ask questions and generate comprehensive Power BI-style dashboards</p>
+        <h1 class="page-title">Autonomous Analyst</h1>
+        <p class="page-subtitle">Collaborate with the AI to extract deep insights from your data hub</p>
       </div>
     </div>
 
-    <!-- Power BI Analysis Card -->
-    <div class="pbi-analysis-card" style="margin-bottom:2.5rem; border:1px solid rgba(99,102,241,0.2); box-shadow:0 8px 32px rgba(0,0,0,0.2);">
-      <div class="pbi-header">
-        <div class="pbi-header-left">
-          <span class="pbi-icon">✨</span>
-          <span class="pbi-title">New Request</span>
-        </div>
+    <!-- Professional Analysis Control -->
+    <div class="card" style="margin-bottom:2rem; border-color:var(--accent-blue);">
+      <div class="card-header" style="background:var(--primary-100); border-bottom-color:var(--accent-blue);">
+        <span class="card-title" style="color:var(--accent-indigo);">NEW RESEARCH TASK</span>
       </div>
-      <div class="pbi-body">
-        <div class="form-group" style="margin-bottom:1.5rem;">
-          <label class="form-label" style="font-weight:600; color:var(--text-light);">Select Data Source</label>
-          <select class="form-select" id="analysis-source" style="max-width:400px; background:rgba(255,255,255,0.03);"></select>
+      <div class="card-body">
+        <div style="display:grid; grid-template-columns: 1fr 2fr; gap: 2rem; margin-bottom: 2rem;">
+            <div class="form-group">
+                <label class="form-label">Data Hub Source</label>
+                <select class="form-select" id="analysis-source"></select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Total Insights to Generate</label>
+                <div class="pill-group" id="insight-count-pills">
+                    <button class="pill-btn" data-value="1">1 (Single)</button>
+                    <button class="pill-btn active" data-value="3">3 (Balanced)</button>
+                    <button class="pill-btn" data-value="5">5 (Comprehensive)</button>
+                </div>
+            </div>
         </div>
         
-        <div class="form-group" style="margin-bottom:1.5rem;">
-          <label class="form-label" style="font-weight:600; color:var(--text-light);">What would you like to analyze?</label>
-          <textarea class="form-input" id="analysis-q" rows="3" placeholder="e.g. Give me a comprehensive overview of our sales performance over the latest year, broken down by region and product category." style="background:rgba(255,255,255,0.03); resize:vertical;">${qText}</textarea>
+        <div class="form-group">
+          <label class="form-label">Natural Language Inquiry</label>
+          <textarea class="form-input" id="analysis-q" rows="4" placeholder="e.g. Provide a quarterly breakdown of sales performance compared to our business metrics...">${qText}</textarea>
         </div>
 
-        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
-          <div class="depth-selector" style="display:flex; align-items:center; gap:1rem;">
-            <label class="form-label" style="margin:0; font-weight:600; color:var(--text-light);">Number of Insights:</label>
-            <div class="pill-group" id="insight-count-pills">
-              <button class="pill-btn" data-value="1">1</button>
-              <button class="pill-btn" data-value="2">2</button>
-              <button class="pill-btn active" data-value="3">3</button>
-              <button class="pill-btn" data-value="4">4</button>
-              <button class="pill-btn" data-value="5">5</button>
-            </div>
-            <span style="font-size:0.8rem; color:var(--text-muted); margin-left:0.5rem;" id="insight-count-hint">Generates 3 distinct charts</span>
-          </div>
-          
-          <button class="btn btn-primary" id="btn-analyze" style="padding:0.75rem 2rem; font-weight:600; font-size:1rem; box-shadow:0 4px 12px rgba(99,102,241,0.3);">
-            🚀 Run Analysis
+        <div style="display:flex; justify-content:flex-end; padding-top:1rem; border-top:1px solid var(--border-light);">
+          <button class="btn btn-primary" id="btn-analyze" style="min-width:200px;">
+             Execute Analysis
           </button>
         </div>
       </div>
     </div>
     
-    <!-- PBI Results Grid (Auto-fitting) -->
     <div id="pbi-results-grid" style="display:none; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap:1.5rem; margin-bottom:3rem;">
     </div>
   `;
@@ -640,7 +643,7 @@ async function renderAnalysis(container) {
     const data = await api.listDataSources();
     const select = document.getElementById('analysis-source');
     if (data.data_sources?.length) {
-      select.innerHTML = data.data_sources.map(s => `<option value="${s.id}">${s.name} (${s.type})</option>`).join('');
+      select.innerHTML = data.data_sources.map(s => `< option value = "${s.id}" > ${s.name} (${s.type})</option > `).join('');
       if (initialSourceId) select.value = initialSourceId;
     } else {
       select.innerHTML = '<option value="">No data sources available</option>';
@@ -689,10 +692,12 @@ async function submitCustomAnalysis() {
   try {
     const payloads = [];
     for (let i = 0; i < count; i++) {
-      payloads.push(api.post('/analysis/query', { source_id: sourceId, question: q, context_id: count > 1 ? `Insight ${i + 1}/${count}` : null }));
+      payloads.push(api.post('/analysis/query', {
+        source_id: sourceId, question: q, context_id: count > 1 ? `Insight ${i + 1}/${count}` : null
+      }));
     }
 
-    showToast(`Dispatching ${count} isolated worker(s)...`, 'info');
+    showToast(`Coordinating analytical resources for ${count} workstreams...`, 'info');
     const results = await Promise.all(payloads);
     btn.textContent = '🚀 Run Analysis';
     btn.disabled = false;
@@ -737,6 +742,12 @@ async function pollPBIPanel(jobId, sourceId) {
           return _setPBIPanelError(jobId, st.error || 'Failed to complete analysis');
         } else if (s === 'awaiting_approval') {
           return _renderApprovalState(jobId, st.sql_query, st.explanation);
+        } else if (s === 'reflection') {
+          statusEl.className = 'pbi-panel-status badge badge-info';
+          statusEl.innerHTML = '<span class="pulse-loader"><span class="pulse-dot"></span><span class="pulse-dot"></span><span class="pulse-dot"></span></span> Introspecting...';
+        } else if (s === 'data_discovery') {
+          statusEl.className = 'pbi-panel-status badge badge-info';
+          statusEl.textContent = 'Exploring Patterns...';
         } else {
           statusEl.textContent = s.replace('_', ' ').toUpperCase();
         }
@@ -753,20 +764,20 @@ function _renderApprovalState(jobId, sql, intent) {
   const chartEl = document.getElementById(`pbi-chart-${jobId}`);
   const panelEl = document.getElementById(`pbi-panel-${jobId}`);
 
-  if (statusEl) { statusEl.className = 'pbi-panel-status badge badge-warning'; statusEl.textContent = 'Needs Review'; }
-  if (panelEl) panelEl.style.borderColor = 'var(--warning-500)';
+  if (statusEl) { statusEl.className = 'pbi-panel-status badge badge-warning'; statusEl.textContent = 'Awaiting Review'; }
+  if (panelEl) panelEl.style.borderColor = 'var(--warning)';
 
   if (chartEl) {
     chartEl.innerHTML = `
       <div style="padding:1rem; height:100%; display:flex; flex-direction:column;">
-        <h4 style="color:var(--warning-500); margin-bottom:0.5rem; display:flex; align-items:center; gap:0.5rem;">⚠️ Approval Required</h4>
-        <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:0.75rem;"><strong>AI Intent:</strong> ${intent || 'To securely fetch your data.'}</p>
+        <h4 style="color:var(--warning); margin-bottom:0.5rem; display:flex; align-items:center; gap:0.5rem;">⚠️ Strategic Signal Required</h4>
+        <p style="font-size:0.85rem; color:var(--text-dim); margin-bottom:0.75rem;"><strong>AI Reasoning:</strong> ${intent || 'To securely fetch your data.'}</p>
         <div style="background:rgba(0,0,0,0.3); padding:0.75rem; border-radius:6px; flex:1; overflow-y:auto; overflow-x:auto; margin-bottom:1rem; border:1px solid rgba(255,255,255,0.05);">
           <code style="color:#60A5FA; font-size:0.8rem; white-space:pre;">${sql || 'SELECT * FROM ...'}</code>
         </div>
         <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
-          <button class="btn btn-sm btn-secondary" onclick="cancelJob('${jobId}')" style="color:var(--error-500);">Cancel</button>
-          <button class="btn btn-sm btn-primary" onclick="approveJob('${jobId}')" style="background:var(--success-500); border-color:var(--success-500);">✓ Approve & Run</button>
+          <button class="btn btn-sm btn-secondary" onclick="cancelJob('${jobId}')" style="color:var(--error); border-color:var(--error);">Cancel Task</button>
+          <button class="btn btn-sm btn-primary" onclick="approveJob('${jobId}')" style="background:var(--success); border-color:var(--success);">✓ Validate & Execute</button>
         </div>
       </div>
     `;
@@ -802,7 +813,13 @@ async function _renderPBIPanel(jobId, result, sourceId) {
   const insightEl = document.getElementById(`pbi-insight-${jobId}`);
   const panelEl = document.getElementById(`pbi-panel-${jobId}`);
 
-  if (statusEl) { statusEl.className = 'pbi-panel-status badge badge-success'; statusEl.textContent = '✓ Ready'; }
+  if (statusEl) {
+    statusEl.className = 'pbi-panel-status badge badge-success';
+    statusEl.textContent = '✓ Ready';
+    if (result.reflection_count > 0) {
+      statusEl.innerHTML += ' <span style="font-size:0.7rem; opacity:0.8; margin-left:0.4rem; font-weight:500;">(Auto-Adjusted)</span>';
+    }
+  }
   if (panelEl) panelEl.classList.add('done');
 
   // Render chart
@@ -813,12 +830,12 @@ async function _renderPBIPanel(jobId, result, sourceId) {
       const layout = {
         ...(result.chart_json.layout || {}),
         paper_bgcolor: 'rgba(0,0,0,0)',
-        plot_bgcolor: 'rgba(12,16,36,0.6)',
-        font: { color: '#cbd5e1', family: 'Inter, sans-serif', size: 11 },
+        plot_bgcolor: 'rgba(241,245,249,0.4)',
+        font: { color: 'var(--text-main)', family: 'Outfit, sans-serif', size: 12 },
         margin: { t: 28, b: 40, l: 50, r: 16 },
-        legend: { bgcolor: 'rgba(0,0,0,0)', font: { color: '#94a3b8' } },
-        xaxis: { ...(result.chart_json.layout?.xaxis || {}), gridcolor: 'rgba(255,255,255,0.05)', linecolor: 'rgba(255,255,255,0.1)' },
-        yaxis: { ...(result.chart_json.layout?.yaxis || {}), gridcolor: 'rgba(255,255,255,0.05)', linecolor: 'rgba(255,255,255,0.1)' },
+        legend: { bgcolor: 'rgba(0,0,0,0)', font: { color: 'var(--text-dim)' } },
+        xaxis: { ...(result.chart_json.layout?.xaxis || {}), gridcolor: 'var(--primary-100)', linecolor: 'var(--primary-200)' },
+        yaxis: { ...(result.chart_json.layout?.yaxis || {}), gridcolor: 'var(--primary-100)', linecolor: 'var(--primary-200)' },
       };
       Plotly.newPlot(chartEl, result.chart_json.data, layout, { responsive: true, displayModeBar: false });
     } catch (e) {
@@ -848,30 +865,31 @@ async function renderUsers(container) {
   container.innerHTML = `
     <div class="page-header">
       <div>
-        <h1 class="page-title">Team Members</h1>
-        <p class="page-subtitle">Manage who has access to your organization</p>
+        <h1 class="page-title">Identity & Access</h1>
+        <p class="page-subtitle">Manage organization-level permissions and team collaboration</p>
       </div>
-      <button class="btn btn-primary" onclick="showInviteModal()">➕ Invite Member</button>
+      <button class="btn btn-primary" onclick="showInviteModal()">Invite Contributor</button>
     </div>
     <div class="card">
-      <div class="card-body" id="users-list">
-        <div style="text-align:center;padding:2rem;"><div class="spinner" style="margin:0 auto;"></div></div>
+      <div class="card-header"><span class="card-title">Authorized Personnel</span></div>
+      <div class="card-body" id="users-list" style="padding:1.5rem;">
+        <div style="text-align:center;padding:3rem;"><div class="spinner" style="margin:0 auto;"></div></div>
       </div>
     </div>
     <!-- Invite Modal -->
     <div class="modal-overlay" id="invite-modal">
       <div class="modal">
-        <div class="modal-header"><h3 class="modal-title">Invite Team Member</h3><button class="btn-icon" onclick="closeInviteModal()">✕</button></div>
+        <div class="modal-header"><h3 class="modal-title">Authorize New Member</h3><button class="btn-icon" onclick="closeInviteModal()">✕</button></div>
         <div class="modal-body">
-          <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="invite-email" placeholder="colleague@company.com"></div>
-          <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="invite-password" placeholder="Temporary password"></div>
-          <div class="form-group"><label class="form-label">Role</label>
-            <select class="form-select" id="invite-role"><option value="viewer">Viewer</option><option value="admin">Admin</option></select>
+          <div class="form-group"><label class="form-label">Corporate Email</label><input class="form-input" id="invite-email" placeholder="name@company.com"></div>
+          <div class="form-group"><label class="form-label">Initial Access Code</label><input class="form-input" type="password" id="invite-password" placeholder="System password"></div>
+          <div class="form-group"><label class="form-label">Privilege Level</label>
+            <select class="form-select" id="invite-role"><option value="viewer">Viewer</option><option value="admin">Administrator</option></select>
           </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" onclick="closeInviteModal()">Cancel</button>
-          <button class="btn btn-primary" id="btn-invite">Send Invite</button>
+          <button class="btn btn-primary" id="btn-invite">Dispatch Invitation</button>
         </div>
       </div>
     </div>
@@ -905,14 +923,14 @@ async function loadUsers() {
       return;
     }
     list.innerHTML = data.users.map(u => `
-      <div class="user-item card" style="display:flex;align-items:center;padding:1.25rem 1.5rem;margin-bottom:1rem;gap:1.5rem;background:rgba(255,255,255,0.02);border:1px solid var(--glass-border);border-radius:14px;">
-        <div class="sidebar-avatar" style="width:40px;height:40px;flex-shrink:0;">${u.email.substring(0, 2).toUpperCase()}</div>
+      <div class="user-item" style="display:flex; align-items:center; padding:1.25rem 1.5rem; margin-bottom:0.75rem; gap:1.5rem; background:var(--primary-50); border:1px solid var(--border-light); border-radius:var(--radius-md);">
+        <div class="sidebar-avatar" style="width:40px; height:40px; flex-shrink:0;">${u.email.substring(0, 2).toUpperCase()}</div>
         <div class="source-info" style="flex:1;">
-          <div class="source-name" style="font-weight:700;">${u.email}</div>
-          <div class="source-meta" style="font-size:0.85rem;color:var(--text-muted);">Joined ${new Date(u.created_at).toLocaleDateString()}</div>
+          <div class="source-name" style="font-weight:700; color:var(--text-main);">${u.email}</div>
+          <div class="source-meta" style="font-size:0.8rem; color:var(--text-muted); font-weight:500;">Authorized ${new Date(u.created_at).toLocaleDateString()}</div>
         </div>
-        <span class="badge ${u.role === 'admin' ? 'badge-info' : 'badge-success'}">${u.role}</span>
-        ${u.id !== getUser()?.id ? `<button class="btn btn-sm btn-secondary" style="color:#EF4444;border-color:rgba(239,68,68,0.2);" onclick="removeUser('${u.id}')">Remove</button>` : ''}
+        <span class="badge ${u.role === 'admin' ? 'badge-info' : 'badge-success'}">${u.role.toUpperCase()}</span>
+        ${u.id !== getUser()?.id ? `<button class="btn btn-sm btn-secondary" style="color:var(--error);" onclick="removeUser('${u.id}')">Revoke Access</button>` : ''}
       </div>
     `).join('');
   } catch (e) { showToast('Failed to load users', 'error'); }
@@ -951,13 +969,16 @@ async function renderSourceDashboard(container) {
   // Loading state
   container.innerHTML = `
     <div class="page-header">
-      <div><h1 class="page-title">📊 AI Dashboard</h1><p class="page-subtitle">Auto-generated insights for your data</p></div>
-      <button class="btn btn-secondary" onclick="navigate('data-sources')">← Back to Sources</button>
+      <div>
+        <h1 class="page-title">Executive Insight Hub</h1>
+        <p class="page-subtitle">Auto-generated specialized intelligence dashboards</p>
+      </div>
+      <button class="btn btn-secondary" onclick="navigate('data-sources')">← Back to Assets</button>
     </div>
-    <div class="dashboard-loading">
-      <div class="loading-orb"></div>
-      <h3>Loading your AI-generated insights…</h3>
-      <p>Please wait</p>
+    <div class="dashboard-loading" style="background:var(--bg-surface); border-radius:var(--radius-lg); border:1px solid var(--border-light); padding:5rem 2rem;">
+      <div class="spinner" style="width:48px; height:48px; margin:0 auto 2rem;"></div>
+      <h3 style="font-family:'Outfit';">Initializing Data Synthesis...</h3>
+      <p style="color:var(--text-dim);">Please wait while the AI identifies business patterns.</p>
     </div>
   `;
 
@@ -968,16 +989,19 @@ async function renderSourceDashboard(container) {
     if (source.auto_analysis_status === 'running' || source.auto_analysis_status === 'pending') {
       container.innerHTML = `
         <div class="page-header">
-          <div><h1 class="page-title">📊 AI Dashboard</h1><p class="page-subtitle">Auto-generated insights for your data</p></div>
+          <div>
+            <h1 class="page-title">Executive Insight Hub</h1>
+            <p class="page-subtitle">Synthesizing autonomous reasoning for your data assets</p>
+          </div>
           <button class="btn btn-secondary" onclick="navigate('data-sources')">← Back</button>
         </div>
-        <div class="dashboard-loading">
-          <div class="loading-orb"></div>
-          <h3>AI is analysing your data…</h3>
-          <p>The AI is exploring your data and generating 5 smart insights.<br>This takes about 30–60 seconds.</p>
-          <div class="analysis-progress">
-            <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-            <span class="progress-label" id="progress-label">Detecting data domain…</span>
+        <div class="dashboard-loading" style="background:var(--bg-surface); border-radius:var(--radius-lg); border:1px solid var(--border-light); padding:5rem 2rem;">
+          <div class="spinner" style="width:48px; height:48px; margin:0 auto 2rem; border-color:var(--accent-blue); border-top-color:transparent;"></div>
+          <h3 style="font-family:'Outfit';">Autonomous Reasoning in Progress...</h3>
+          <p style="color:var(--text-dim); max-width:500px; margin:0 auto 2rem;">The agent is traversing your data to generate a multi-dimensional intelligence report. This typically concludes within 45 seconds.</p>
+          <div class="analysis-progress" style="max-width:400px; margin:0 auto;">
+            <div class="progress-container" style="display:block; height:8px;"><div class="progress-bar" id="progress-fill"></div></div>
+            <span id="progress-label" style="display:block; margin-top:1rem; font-size:0.85rem; font-weight:700; color:var(--accent-indigo); text-transform:uppercase; letter-spacing:0.05em;">Introspecting Schema...</span>
           </div>
         </div>
       `;
@@ -1039,47 +1063,47 @@ async function renderCSVDashboard(container, source) {
   container.innerHTML = `
     <div class="page-header">
       <div>
-        <h1 class="page-title">📄 CSV Dashboard</h1>
-        <p class="page-subtitle">${source.name} · <span class="badge badge-info" style="text-transform:capitalize;">${domain}</span></p>
+        <h1 class="page-title">Resource Analysis</h1>
+        <p class="page-subtitle">${source.name} • <span class="badge badge-info" style="text-transform:capitalize;">${domain}</span></p>
       </div>
-      <div style="display:flex;gap:0.75rem;">
-        <button class="btn btn-secondary" onclick="navigateToAnalysis('${source.id}')">🔍 Ask a Question</button>
+      <div style="display:flex; gap:0.75rem;">
+        <button class="btn btn-primary" onclick="navigateToAnalysis('${source.id}')">🔍 New Query</button>
         <button class="btn btn-secondary" onclick="navigate('data-sources')">← Back</button>
       </div>
     </div>
 
     <!-- Stats row -->
-    <div class="stats-grid" style="margin-bottom:1.5rem;">
+    <div class="stats-grid" style="margin-bottom:2rem;">
       <div class="stat-card">
-        <div class="stat-label">Total Rows</div>
-        <div class="stat-value">${(schema.row_count || 0).toLocaleString()}</div>
+        <div class="stat-label">Inventory Size</div>
+        <div class="stat-value">${(schema.row_count || 0).toLocaleString()} <span style="font-size:0.85rem; font-weight:500; color:var(--text-dim);">Rows</span></div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Columns</div>
-        <div class="stat-value">${schema.column_count || 0}</div>
+        <div class="stat-label">Schema Breadth</div>
+        <div class="stat-value">${schema.column_count || 0} <span style="font-size:0.85rem; font-weight:500; color:var(--text-dim);">Cols</span></div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Numeric Columns</div>
-        <div class="stat-value">${numCols.length}</div>
+        <div class="stat-label">Analytics Potential</div>
+        <div class="stat-value">${numCols.length} <span style="font-size:0.85rem; font-weight:500; color:var(--text-dim);">Metrics</span></div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Data Quality</div>
-        <div class="stat-value" style="color:${(source.auto_analysis_json?.quality_score || 1) > 0.8 ? 'var(--success-400)' : 'var(--warning-400)'}">${Math.round((source.auto_analysis_json?.quality_score || 1) * 100)}%</div>
+        <div class="stat-label">Stability Score</div>
+        <div class="stat-value" style="color:var(--accent-blue);">${Math.round((source.auto_analysis_json?.quality_score || 1) * 100)}%</div>
       </div>
     </div>
 
     <!-- Column profile -->
-    <div class="card" style="margin-bottom:1.5rem;">
-      <div class="card-header"><span class="card-title">📋 Column Profile</span></div>
-      <div class="card-body" style="padding:0;overflow-x:auto;">
+    <div class="card" style="margin-bottom:2rem;">
+      <div class="card-header"><span class="card-title">Structural Metadata</span></div>
+      <div class="card-body" style="padding:0; overflow-x:auto;">
         <table class="data-table">
-          <thead><tr><th>Column</th><th>Type</th><th>Sample Values</th></tr></thead>
+          <thead><tr><th>Identity</th><th>Data Protocol</th><th>Sample Observations</th></tr></thead>
           <tbody>
             ${cols.slice(0, 10).map(c => `
               <tr>
-                <td style="font-weight:600;">${c.name}</td>
-                <td><span class="badge ${numCols.find(n => n.name === c.name) ? 'badge-info' : dateCols.find(d => d.name === c.name) ? 'badge-warning' : 'badge-neutral'}">${c.dtype}</span></td>
-                <td style="color:var(--text-muted);font-size:0.8rem;">${(c.sample_values || []).slice(0, 3).join(', ')}</td>
+                <td style="font-weight:700; color:var(--text-main);">${c.name}</td>
+                <td><span class="badge ${numCols.find(n => n.name === c.name) ? 'badge-info' : dateCols.find(d => d.name === c.name) ? 'badge-warning' : 'badge-neutral'}">${c.dtype.toUpperCase()}</span></td>
+                <td style="color:var(--text-dim); font-size:0.85rem; font-family:'Inter';">${(c.sample_values || []).slice(0, 3).join(', ')}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -1108,46 +1132,49 @@ async function renderSQLDashboard(container, source) {
   container.innerHTML = `
     <div class="page-header">
       <div>
-        <h1 class="page-title">🗄️ SQL Dashboard</h1>
-        <p class="page-subtitle">${source.name} · <span class="badge badge-success" style="text-transform:capitalize;">${domain}</span></p>
+        <h1 class="page-title">Relational Intelligence</h1>
+        <p class="page-subtitle">${source.name} • <span class="badge badge-success" style="text-transform:capitalize;">${domain}</span></p>
       </div>
-      <div style="display:flex;gap:0.75rem;">
-        <button class="btn btn-secondary" onclick="navigateToAnalysis('${source.id}')">🔍 Ask a Question</button>
+      <div style="display:flex; gap:0.75rem;">
+        <button class="btn btn-primary" onclick="navigateToAnalysis('${source.id}')">🔍 New Query</button>
         <button class="btn btn-secondary" onclick="navigate('data-sources')">← Back</button>
       </div>
     </div>
 
     <!-- Stats row -->
-    <div class="stats-grid" style="margin-bottom:1.5rem;">
+    <div class="stats-grid" style="margin-bottom:2rem;">
       <div class="stat-card">
-        <div class="stat-label">Tables</div>
-        <div class="stat-value">${schema.table_count || tables.length}</div>
+        <div class="stat-label">Schema Depth</div>
+        <div class="stat-value">${schema.table_count || tables.length} <span style="font-size:0.85rem; font-weight:500; color:var(--text-dim);">Tables</span></div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Total Columns</div>
-        <div class="stat-value">${schema.total_columns || '—'}</div>
+        <div class="stat-label">Relational Scope</div>
+        <div class="stat-value">${schema.total_columns || '—'} <span style="font-size:0.85rem; font-weight:500; color:var(--text-dim);">Attributes</span></div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Dialect</div>
-        <div class="stat-value" style="font-size:1rem;">${(schema.dialect || schema.source_type || 'SQL').toUpperCase()}</div>
+        <div class="stat-label">Protocol</div>
+        <div class="stat-value" style="font-size:1rem; color:var(--accent-blue);">${(schema.dialect || schema.source_type || 'SQL').toUpperCase()}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">AI Insights</div>
-        <div class="stat-value" style="color:var(--success-400);">${results.filter(r => r.status === 'done').length}/${results.length || 5}</div>
+        <div class="stat-label">Autonomous Health</div>
+        <div class="stat-value" style="color:var(--success);">${results.filter(r => r.status === 'done').length}/${results.length || 5}</div>
       </div>
     </div>
 
     <!-- Schema explorer -->
     ${tables.length > 0 ? `
-    <div class="card" style="margin-bottom:1.5rem;">
-      <div class="card-header"><span class="card-title">🗂️ Schema Explorer</span></div>
+    <div class="card" style="margin-bottom:2rem;">
+      <div class="card-header"><span class="card-title">Relational Map</span></div>
       <div class="card-body">
-        <div class="tables-grid">
+        <div class="tables-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:1.25rem;">
           ${tables.map(t => `
-            <div class="table-card">
-              <div class="table-card-name">📋 ${t.table}</div>
-              <div class="table-card-meta">${t.column_count} cols${t.row_count != null ? ' · ' + Number(t.row_count).toLocaleString() + ' rows' : ''}</div>
-              <div class="table-card-cols">${(t.columns || []).slice(0, 4).map(c => `<span class="col-chip">${c.name}</span>`).join('')}${t.columns?.length > 4 ? `<span class="col-chip muted">+${t.columns.length - 4} more</span>` : ''}</div>
+            <div class="table-card" style="background:var(--primary-50); border:1px solid var(--border-light); border-radius:var(--radius-md); padding:1.25rem; transition:var(--transition); cursor:default;">
+              <div class="table-card-name" style="font-weight:700; color:var(--text-main); font-size:1rem; margin-bottom:0.15rem;">📋 ${t.table}</div>
+              <div class="table-card-meta" style="font-size:0.8rem; color:var(--text-muted); font-weight:500; margin-bottom:0.75rem;">${t.column_count} COLUMNS ${t.row_count != null ? ' • ' + Number(t.row_count).toLocaleString() + ' ROWS' : ''}</div>
+              <div class="table-card-cols" style="display:flex; flex-wrap:wrap; gap:0.4rem;">
+                ${(t.columns || []).slice(0, 4).map(c => `<span class="badge badge-neutral" style="font-size:0.7rem; padding:0.2rem 0.5rem; text-transform:none;">${c.name}</span>`).join('')}
+                ${t.columns?.length > 4 ? `<span class="badge badge-neutral" style="font-size:0.7rem; padding:0.2rem 0.5rem; opacity:0.6;">+${t.columns.length - 4} MORE</span>` : ''}
+              </div>
             </div>
           `).join('')}
         </div>
@@ -1228,28 +1255,29 @@ async function renderMetrics(container) {
   container.innerHTML = `
     <div class="page-header">
       <div>
-        <h1 class="page-title">Metric Dictionary</h1>
-        <p class="page-subtitle">Define business terms to help the AI understand your data</p>
+        <h1 class="page-title">Semantic Intelligence</h1>
+        <p class="page-subtitle">Define organizational metrics to guide AI reasoning and context</p>
       </div>
-      ${isAdmin ? `<button class="btn btn-primary" onclick="showMetricModal()">➕ Add Metric</button>` : ''}
+      ${isAdmin ? `<button class="btn btn-primary" onclick="showMetricModal()">Define Metric</button>` : ''}
     </div>
     <div class="card">
-      <div class="card-body" id="metrics-list">
-        <div style="text-align:center;padding:3rem;"><div class="spinner" style="margin:0 auto;"></div></div>
+      <div class="card-header"><span class="card-title">Corporate Metric Dictionary</span></div>
+      <div class="card-body" id="metrics-list" style="padding:0;">
+        <div style="text-align:center;padding:4rem;"><div class="spinner" style="margin:0 auto;"></div></div>
       </div>
     </div>
     <!-- Metric Modal -->
     <div class="modal-overlay" id="metric-modal">
       <div class="modal">
-        <div class="modal-header"><h3 class="modal-title">Define New Metric</h3><button class="btn-icon" onclick="closeMetricModal()">✕</button></div>
+        <div class="modal-header"><h3 class="modal-title">Define Strategic Metric</h3><button class="btn-icon" onclick="closeMetricModal()">✕</button></div>
         <div class="modal-body">
-          <div class="form-group"><label class="form-label">Metric Name</label><input class="form-input" id="metric-name" placeholder="e.g. Monthly Active Users"></div>
-          <div class="form-group"><label class="form-label">Business Definition</label><textarea class="form-input" id="metric-def" rows="3" placeholder="Explain what this means in plain English..."></textarea></div>
-          <div class="form-group"><label class="form-label">Formula (Optional)</label><input class="form-input" id="metric-formula" placeholder="e.g. count(distinct user_id) where login_date > now() - interval '30 days'"></div>
+          <div class="form-group"><label class="form-label">Metric Label</label><input class="form-input" id="metric-name" placeholder="e.g. Net Revenue Retention"></div>
+          <div class="form-group"><label class="form-label">Business Logic Definition</label><textarea class="form-input" id="metric-def" rows="3" placeholder="Explain the calculation logic and business intent..."></textarea></div>
+          <div class="form-group"><label class="form-label">Calculated Formula</label><input class="form-input" id="metric-formula" placeholder="e.g. sum(rev_current) / sum(rev_previous)"></div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" onclick="closeMetricModal()">Cancel</button>
-          <button class="btn btn-primary" id="btn-save-metric">Save Metric</button>
+          <button class="btn btn-primary" id="btn-save-metric">Register Metric</button>
         </div>
       </div>
     </div>
@@ -1284,14 +1312,14 @@ async function loadMetrics() {
     list.innerHTML = `
       <div class="table-wrapper">
         <table class="data-table">
-          <thead><tr><th>Metric</th><th>Definition</th><th>Formula</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Metric Property</th><th>Calculation Intent</th><th>Semantic Formula</th><th style="text-align:right;">Control</th></tr></thead>
           <tbody>${data.metrics.map(m => `
             <tr>
-              <td style="font-weight:700;color:var(--primary-400);">${m.name}</td>
-              <td style="max-width:300px;white-space:normal;font-size:0.9rem;">${m.definition}</td>
-              <td><code>${m.formula || '—'}</code></td>
+              <td style="font-weight:700; color:var(--text-main);">${m.name}</td>
+              <td style="max-width:350px; white-space:normal; font-size:0.85rem; color:var(--text-dim); line-height:1.5;">${m.definition}</td>
+              <td><code style="background:var(--primary-100); color:var(--accent-indigo); padding:0.2rem 0.5rem; border-radius:4px; font-size:0.8rem;">${m.formula || 'DYNAMIC'}</code></td>
               <td style="text-align:right;">
-                ${getUser()?.role === 'admin' ? `<button class="btn btn-sm btn-icon" title="Delete" onclick="handleMetricDelete('${m.id}')">🗑️</button>` : '—'}
+                ${getUser()?.role === 'admin' ? `<button class="btn btn-sm btn-secondary" style="color:var(--error);" onclick="handleMetricDelete('${m.id}')">Delete</button>` : '—'}
               </td>
             </tr>
           `).join('')}</tbody>
@@ -1319,25 +1347,25 @@ async function renderKnowledge(container) {
   container.innerHTML = `
     <div class="page-header">
       <div>
-        <h1 class="page-title">Knowledge Base</h1>
-        <p class="page-subtitle">Manage documents and context for AI analysis</p>
+        <h1 class="page-title">Knowledge Repositories</h1>
+        <p class="page-subtitle">Index enterprise documentation to enhance autonomous context</p>
       </div>
-      ${isAdmin ? `<button class="btn btn-primary" onclick="showKBModal()">➕ New Collection</button>` : ''}
+      ${isAdmin ? `<button class="btn btn-primary" onclick="showKBModal()">Create Repository</button>` : ''}
     </div>
-    <div class="kb-grid" id="kb-list">
-      <div style="text-align:center;padding:3rem;grid-column:1/-1;"><div class="spinner" style="margin:0 auto;"></div></div>
+    <div class="kb-grid" id="kb-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:2rem;">
+      <div style="text-align:center; padding:5rem; grid-column:1/-1;"><div class="spinner" style="margin:0 auto;"></div></div>
     </div>
     <!-- KB Modal -->
     <div class="modal-overlay" id="kb-modal">
       <div class="modal">
-        <div class="modal-header"><h3 class="modal-title">New Knowledge Base</h3><button class="btn-icon" onclick="closeKBModal()">✕</button></div>
+        <div class="modal-header"><h3 class="modal-title">Initialize Knowledge Asset</h3><button class="btn-icon" onclick="closeKBModal()">✕</button></div>
         <div class="modal-body">
-          <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="kb-name" placeholder="e.g. Legal Documents"></div>
-          <div class="form-group"><label class="form-label">Description</label><textarea class="form-input" id="kb-desc" rows="2" placeholder="What kind of documents are in this collection?"></textarea></div>
+          <div class="form-group"><label class="form-label">Collection Name</label><input class="form-input" id="kb-name" placeholder="e.g. Global Compliance Guidelines"></div>
+          <div class="form-group"><label class="form-label">Scope Description</label><textarea class="form-input" id="kb-desc" rows="3" placeholder="Define the utility and dataset classification..."></textarea></div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" onclick="closeKBModal()">Cancel</button>
-          <button class="btn btn-primary" id="btn-save-kb">Create Collection</button>
+          <button class="btn btn-primary" id="btn-save-kb">Initialize Collection</button>
         </div>
       </div>
     </div>
@@ -1369,14 +1397,14 @@ async function loadKnowledgeBases() {
       return;
     }
     list.innerHTML = data.knowledge_bases.map(kb => `
-      <div class="card kb-card" onclick="navigate('kb-detail', { id: '${kb.id}', name: '${kb.name}' })" style="cursor:pointer;transition:transform 0.2s;">
-        <div class="card-body">
-          <div style="font-size:2rem;margin-bottom:1rem;">📂</div>
-          <h3 style="margin:0 0 0.5rem 0;">${kb.name}</h3>
-          <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;">${kb.description || 'No description'}</p>
-          <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;color:var(--primary-400);">
-            <span>${kb.document_count} Documents</span>
-            <span>View Details →</span>
+      <div class="card kb-card" onclick="navigate('kb-detail', { id: '${kb.id}', name: '${kb.name}' })" style="cursor:pointer; transition:var(--transition); border-top: 3px solid var(--accent-blue);">
+        <div class="card-body" style="padding:1.5rem;">
+          <div style="font-size:2rem; margin-bottom:1.25rem;">📂</div>
+          <h3 style="margin:0 0 0.5rem 0; font-family:'Outfit'; color:var(--text-main); font-weight:700;">${kb.name}</h3>
+          <p style="font-size:0.85rem; color:var(--text-dim); margin-bottom:1.5rem; line-height:1.6; height:3rem; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">${kb.description || 'No specialized description provided.'}</p>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; padding-top:1.25rem; border-top:1px solid var(--border-light);">
+            <span class="badge badge-neutral" style="font-weight:700;">${kb.document_count} DOCUMENTS</span>
+            <span style="color:var(--accent-blue); font-weight:700; font-size:0.75rem; letter-spacing:0.05em;">EXPLORE ASSET →</span>
           </div>
         </div>
       </div>

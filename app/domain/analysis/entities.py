@@ -58,8 +58,14 @@ class AnalysisState(TypedDict, total=False):
     thread_id: Optional[str]
     
     # ── HITL ──────────────────────────────────────────────────
+    validation_results: Optional[Dict[str, Any]]
     generated_sql: Optional[str]
     approval_granted: bool
+    
+    # ── Reflection & Refinement ──────────────────────────────
+    reflection_context: Optional[str]
+    reflection_count: int
+    user_feedback: Optional[str]
 
     # ── Error Handling ────────────────────────────────────────
     error: Optional[str]
