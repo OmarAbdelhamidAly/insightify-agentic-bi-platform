@@ -32,31 +32,26 @@ jobs:
 
       - name: ⏳ Wait for Services Health
         run: |
-          echo "Waiting for all services to be healthy..."
-          # Wait up to 90 seconds for 4 healthy containers (postgres, redis, api, worker)
-          for i in {1..45}; do
-            HEALTHY_COUNT=$(docker compose ps | grep -c "healthy")
-            echo "Healthy services: $HEALTHY_COUNT / 4"
-            if [ "$HEALTHY_COUNT" -ge 4 ]; then
-              echo "✅ Services are ready!"
+          echo "Waiting for core services to be healthy..."
+          for i in {1..60}; do
+            HEALTHY_COUNT=$(docker compose ps | grep "healthy" | wc -l)
+            echo "Healthy services: $HEALTHY_COUNT"
+            if docker compose ps analyst-postgres | grep -q "healthy" && \
+               docker compose ps analyst-redis | grep -q "healthy" && \
+               docker compose ps analyst-api | grep -q "healthy"; then
+              echo "✅ Core services ready!"
               exit 0
             fi
             sleep 2
           done
-          echo "❌ Timed out waiting for services. Status:"
           docker compose ps
-          docker compose logs
           exit 1
-
-      - name: 🛡️ Isolation Guard (Architecture Check)
-        run: |
-          docker compose exec -T analyst-worker pytest tests/test_architecture.py
 
       - name: 🧪 Run Full Test Suite
         run: |
-          docker compose exec -T analyst-worker pytest tests/
+          docker compose exec -T analyst-api pytest tests/
 
-      - name:  Generate Logs on Failure
+      - name: 📊 Generate Logs on Failure
         if: failure()
         run: docker compose logs > docker-logs.txt
 

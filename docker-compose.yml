@@ -1,9 +1,9 @@
 # ══════════════════════════════════════════════════════════════
-#  Autonomous Data Analyst Agent — Docker Compose Stack
+#  Autonomous Data Analyst Agent — 4-Pillar Microservices Stack
 # ══════════════════════════════════════════════════════════════
 
 services:
-  # ── PostgreSQL ─────────────────────────────────────────────
+  # ── PostgreSQL (Metadata) ───────────────────────────────────
   postgres:
     image: postgres:16-alpine
     container_name: analyst-postgres
@@ -12,158 +12,143 @@ services:
       POSTGRES_DB: analyst_agent
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+    ports: ["5433:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d analyst_agent" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d analyst_agent"]
       interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
 
-  # ── Redis ──────────────────────────────────────────────────
+  # ── Redis (Message Broker & Cache) ──────────────────────────
   redis:
     image: redis/redis-stack-server:latest
     container_name: analyst-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
-    volumes:
-      - redisdata:/data
+    ports: ["6379:6379"]
+    volumes: [redisdata:/data]
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # ── Qdrant (Vector DB) ──────────────────────────────────────
+  # ── Qdrant (Vector DB for RAG) ──────────────────────────────
   qdrant:
     image: qdrant/qdrant:latest
     container_name: analyst-qdrant
     restart: unless-stopped
-    ports:
-      - "6333:6333"
-      - "6334:6334"
-    volumes:
-      - qdrantdata:/qdrant/storage
-    # Note: Official Qdrant image is minimal and lacks curl/wget. 
-    # We rely on 'service_started' condition below.
+    ports: ["6333:6333", "6334:6334"]
+    volumes: [qdrantdata:/qdrant/storage]
 
-    # ── Ollama (Local LLM) ──────────────────────────────────────
-  ollama:
-    image: ollama/ollama:latest
-    container_name: analyst-ollama
-    restart: unless-stopped
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollamadata:/root/.ollama
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+  # ── Ollama (Local LLM Engine - Disabled for Memory) ───────────
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: analyst-ollama
+  #   restart: unless-stopped
+  #   ports: ["11434:11434"]
+  #   volumes: [ollamadata:/root/.ollama]
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:11434"]
+  #     interval: 10s
 
-    # ── FastAPI Application ────────────────────────────────────
+  # ── API Gateway (Entry Point) ───────────────────────────────
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: { context: ./services/api, dockerfile: Dockerfile }
     container_name: analyst-api
     restart: unless-stopped
-    ports:
-      - "8000:8000"
+    ports: ["8002:8000"]
+    env_file: [./services/api/.env]
     environment:
-      # Use internal service names directly to avoid .env overrides from host
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/analyst_agent
       REDIS_URL: redis://redis:6379/0
-      QDRANT_URL: http://qdrant:6333
-      ENV: ${ENV:-development}
-      MAX_UPLOAD_SIZE_MB: ${MAX_UPLOAD_SIZE_MB:-500}
-      SECRET_KEY: ${SECRET_KEY:-change-me-to-a-random-64-char-string}
-      ALGORITHM: ${ALGORITHM:-HS256}
-      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
-      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      GROQ_API_KEY: ${GROQ_API_KEY}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      AES_KEY: ${AES_KEY:-Y2hhbmdlLW1lLXRvLWEtcmFuZG9tLTMyLWJ5dGVz}
-      CORS_ORIGINS: ${CORS_ORIGINS:-'["http://localhost:3000","http://localhost:8000"]'}
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
-      LLM_MODEL: ollama/llama3.1
       OLLAMA_BASE_URL: http://ollama:11434
-
     volumes:
       - tenant_uploads:/tmp/tenants
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      qdrant:
-        condition: service_started
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
 
-  # ── Celery Worker ──────────────────────────────────────────
-  worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-    container_name: analyst-worker
+  # ── Layer 2: Governance Layer ───────────────────────────────
+  governance:
+    build: { context: ./services/governance, dockerfile: Dockerfile.worker }
+    container_name: analyst-governance
     restart: unless-stopped
+    env_file: [./services/governance/.env]
     environment:
-      # Use internal service names directly to avoid .env overrides from host
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/analyst_agent
       REDIS_URL: redis://redis:6379/0
-      QDRANT_URL: http://qdrant:6333
-      ENV: ${ENV:-development}
-      MAX_UPLOAD_SIZE_MB: ${MAX_UPLOAD_SIZE_MB:-500}
-      SECRET_KEY: ${SECRET_KEY:-change-me-to-a-random-64-char-string}
-      ALGORITHM: ${ALGORITHM:-HS256}
-      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
-      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      GROQ_API_KEY: ${GROQ_API_KEY}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      AES_KEY: ${AES_KEY:-Y2hhbmdlLW1lLXRvLWEtcmFuZG9tLTMyLWJ5dGVz}
-      CORS_ORIGINS: ${CORS_ORIGINS:-'["http://localhost:3000","http://localhost:8000"]'}
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
-      LLM_MODEL: ollama/llama3.1
-      OLLAMA_BASE_URL: http://ollama:11434
-
     volumes:
       - tenant_uploads:/tmp/tenants
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      qdrant:
-        condition: service_started
-    healthcheck:
-      test: [ "CMD-SHELL", "celery -A app.worker inspect ping || exit 1" ]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 15s
+    command: ["celery", "-A", "app.worker", "worker", "-Q", "governance", "--loglevel=info", "--concurrency=2"]
+    depends_on: [redis, postgres]
 
-# ── Named Volumes ──────────────────────────────────────────────
+  # ── Layer 3: The 4 Execution Pillars ────────────────────────
+
+  worker-sql:
+    build: { context: ./services/worker-sql, dockerfile: Dockerfile.worker }
+    container_name: analyst-worker-sql
+    restart: unless-stopped
+    env_file: [./services/worker-sql/.env]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/analyst_agent
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - tenant_uploads:/tmp/tenants
+    command: ["celery", "-A", "app.worker", "worker", "-Q", "pillar.sql,pillar.sqlite,pillar.postgresql", "--loglevel=info", "--concurrency=4"]
+    depends_on: [redis, postgres]
+
+  worker-csv:
+    build: { context: ./services/worker-csv, dockerfile: Dockerfile.worker }
+    container_name: analyst-worker-csv
+    restart: unless-stopped
+    env_file: [./services/worker-csv/.env]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/analyst_agent
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - tenant_uploads:/tmp/tenants
+    command: ["celery", "-A", "app.worker", "worker", "-Q", "pillar.csv", "--loglevel=info", "--concurrency=4"]
+    depends_on: [redis]
+
+  worker-json:
+    build: { context: ./services/worker-json, dockerfile: Dockerfile.worker }
+    container_name: analyst-worker-json
+    restart: unless-stopped
+    env_file: [./services/worker-json/.env]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/analyst_agent
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - tenant_uploads:/tmp/tenants
+    command: ["celery", "-A", "app.worker", "worker", "-Q", "pillar.json", "--loglevel=info", "--concurrency=4"]
+    depends_on: [redis, postgres]
+
+  worker-pdf:
+    build: { context: ./services/worker-pdf, dockerfile: Dockerfile.worker }
+    container_name: analyst-worker-pdf
+    restart: unless-stopped
+    env_file: [./services/worker-pdf/.env]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/analyst_agent
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - tenant_uploads:/tmp/tenants
+    command: ["celery", "-A", "app.worker", "worker", "-Q", "pillar.pdf", "--loglevel=info", "--concurrency=4"]
+    depends_on: [redis, postgres]
+
+  # ── Layer 4: Export Service ─────────────────────────────────
+  exporter:
+    build: { context: ./services/exporter, dockerfile: Dockerfile.worker }
+    container_name: analyst-exporter
+    restart: unless-stopped
+    env_file: [./services/exporter/.env]
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - tenant_uploads:/tmp/tenants
+    command: ["celery", "-A", "app.worker", "worker", "-Q", "export", "--loglevel=info", "--concurrency=2"]
+    depends_on: [redis]
+
 volumes:
-  pgdata:
-    driver: local
-  redisdata:
-    driver: local
-  qdrantdata:
-    driver: local
-  tenant_uploads:
-    driver: local
-  ollamadata:
-    driver: local
+  pgdata: { driver: local }
+  redisdata: { driver: local }
+  qdrantdata: { driver: local }
+  ollamadata: { driver: local }
+  tenant_uploads: { driver: local }
