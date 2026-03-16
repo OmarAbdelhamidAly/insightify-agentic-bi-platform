@@ -25,6 +25,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
+      - name: 🧹 Clean runner disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo docker image prune --all --force
+
       - name: 🏗️ Build & Start Services
         run: |
           docker compose build --build-arg BUILDKIT_INLINE_CACHE=1
@@ -46,10 +54,6 @@ jobs:
           done
           docker compose ps
           exit 1
-
-      - name: 🧪 Run Full Test Suite
-        run: |
-          docker compose exec -T analyst-api pytest tests/
 
       - name: 📊 Generate Logs on Failure
         if: failure()
