@@ -18,40 +18,39 @@ from app.domain.analysis.entities import AnalysisState
 from app.infrastructure.config import settings
 from app.modules.csv.tools.load_data_source import resolve_data_path
 from app.modules.csv.utils.retrieval import get_kb_context
+from app.modules.csv.engine.function_registry import FUNCTION_REGISTRY
 
 # ── Prompt ────────────────────────────────────────────────────────────────────
 
-CSV_ANALYSIS_PROMPT = """You are a data analyst. Given the user question, schema, intent, and business metrics dictionary,
-write a precise analysis plan as JSON.
+CSV_ANALYSIS_PROMPT = """You are an advanced analytical engine. 
+Given the user question, schema, and intent, write a precise JSON execution plan 
+by selecting the optimal function from the Analytical Function Library.
 
-Intent values and what tool they map to:
-- trend       → use operation "trend" with date_column and value_column
-- forecast    → use operation "forecast" with date_column, value_column, periods (default 30)
-- correlation → use operation "correlation" with optional columns list
-- ranking     → use operation "ranking" with rank_column, label_column, top_n
-- comparison  → use operation "groupby" with group_by, agg_column, agg_function
-- anomaly     → use operation "trend" (anomaly detection is built-in)
-- (default)   → use operation "sort", "filter", "aggregate", or "groupby"
-
-**CRITICAL**: Consult the "Business Metrics Dictionary" to understand company-specific terms. If a metric has a 'formula', try to replicate that logic using the available operations.
+**CRITICAL**: Consult the "Business Metrics Dictionary" to understand company-specific terms.
 
 Respond ONLY with valid JSON. No explanations. No markdown.
 
-Fields:
+Fields MUST exactly match this structure:
 {{
-  "operation": "groupby|filter|aggregate|sort|pivot|trend|correlation|ranking|forecast",
-  "group_by": ["col1"],
-  "agg_column": "col",
-  "agg_function": "sum|mean|count|max|min",
-  "sort_by": "col",
-  "sort_order": "asc|desc",
-  "top_n": 10,
-  "filter_conditions": [{{"column": "col", "operator": "==", "value": "val"}}],
-  "date_column": "col",
-  "value_column": "col",
-  "rank_column": "col",
-  "label_column": "col"
+  "steps": [
+    {{
+      "step_id": 1,
+      "function_group": "data_cleaning",
+      "function": "drop_nulls",
+      "columns": ["col1"]
+    }},
+    {{
+      "step_id": 2,
+      "function_group": "predictive",
+      "function": "clustering",
+      "columns": ["col1", "col2"],
+      "parameters": {{"n_clusters": 3}}
+    }}
+  ]
 }}
+
+FUNCTION REGISTRY:
+{registry}
 
 Business Metrics Dictionary:
 {metrics}
@@ -137,6 +136,7 @@ async def _run_csv_analysis(
         chat_history = "\n".join([f"[{msg['role'].upper()}]: {msg['content']}" for msg in history_arr])
 
     prompt = CSV_ANALYSIS_PROMPT.format(
+        registry=json.dumps(FUNCTION_REGISTRY, indent=2),
         metrics=metrics_str,
         schema=schema_str,
         question=state["question"],
@@ -152,6 +152,19 @@ async def _run_csv_analysis(
     data_path = resolve_data_path(state)
 
     # FAST-TRACK: Check if this is a meta-question (schema, columns, rows)
+    if intent == "data_overview":
+        return {
+            "analysis_results": {
+                "plan": {"operation": "data_overview", "summary": "Skipped LLM planner for direct overview extraction"},
+                "source_type": "csv",
+                "dataframe": [state.get("schema_summary", {})],
+                "columns": ["schema_summary"],
+                "summary": "Data Overview Metrics"
+            },
+            "error": None,
+            "retry_count": retry_count,
+        }
+
     if not state.get("error") and data_path:
         meta_result = _handle_meta_question(state["question"], state.get("schema_summary", {}), data_path)
         if meta_result:
@@ -198,6 +211,48 @@ async def _run_csv_analysis(
 def _dispatch_csv_tool(data_path: str, operation: str, plan: Dict[str, Any]) -> Dict[str, Any]:
     """Route to the correct CSV tool based on operation from the LLM plan."""
 
+    # NEW: Advanced Analytics Pipeline Chaining
+    steps = plan.get("steps", [])
+    if not steps:
+        # Fallback if LLM generated flat json
+        func_name = plan.get("function")
+        if func_name:
+            steps = [plan]
+            
+    if steps:
+        import pandas as pd
+        from app.modules.csv.engine.function_executor import execute_function
+        
+        current_df = None
+        chain_results = []
+        
+        for step in steps:
+            func_name = step.get("function")
+            if not func_name: continue
+            
+            res_dict, current_df = execute_function(
+                function_name=func_name,
+                data_path=data_path if current_df is None else None,
+                df=current_df,
+                columns=step.get("columns", []),
+                parameters=step.get("parameters", {})
+            )
+            chain_results.append({
+                "step_id": step.get("step_id"),
+                "function": func_name,
+                "output": res_dict
+            })
+            
+        # Return the final step's output as the primary result, keeping all intermediate logic wrapped
+        final_result = chain_results[-1]["output"]["result"] if chain_results else {}
+        return {
+            "result_type": "chain", 
+            "chain_outputs": chain_results, 
+            "dataframe": current_df.head(50).to_dict(orient="records") if current_df is not None else [],
+            **(chain_results[-1]["output"] if chain_results else {})
+        }
+        
+    # LEGACY: Fallback to old pipeline code
     if operation == "trend":
         from app.modules.csv.tools.compute_trend import compute_trend
         date_col = plan.get("date_column", "")
@@ -282,7 +337,7 @@ def _dispatch_csv_tool(data_path: str, operation: str, plan: Dict[str, Any]) -> 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _handle_meta_question(question: str, schema: Dict[str, Any], data_path: str) -> Optional[Dict[str, Any]]:
-    \"\"\"Answer questions ABOUT the dataset structure directly — no LLM needed.\"\"\"
+    """Answer questions ABOUT the dataset structure directly — no LLM needed."""
     import pandas as pd
     q = question.lower().strip()
     columns_info = schema.get("columns", [])
@@ -403,6 +458,17 @@ def _format_compact_schema(schema_summary: Dict[str, Any]) -> str:
             samples = [str(s)[:15] for s in c['sample_values'][:1]]
             if samples and samples[0]:
                 col_str += f" [eg: {samples[0]}]"
+        extras = []
+        if c.get("null_pct", 0) > 0:
+            extras.append(f"Missing: {c['null_pct']:.1f}%")
+        if c.get("unique_count"):
+            extras.append(f"Unique: {c['unique_count']}")
+        if c.get("outliers") or c.get("has_outliers"): # Depends on exact key used by Data Discovery
+            extras.append("Has Outliers")
+            
+        if extras:
+            col_str += f" | Stats: {', '.join(extras)}"
+            
         col_strs.append("- " + col_str)
         
     lines.extend(col_strs)

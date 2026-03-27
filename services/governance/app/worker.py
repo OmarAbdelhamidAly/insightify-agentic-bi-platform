@@ -52,6 +52,7 @@ async def _execute_governance(job_id: str) -> dict:
     from langgraph.checkpoint.redis import AsyncRedisSaver
     redis_client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=False)
     checkpointer = AsyncRedisSaver(redis_client=redis_client)
+    await checkpointer.setup()
 
     # Bind job_id so all logs in this task have it automatically
     structlog.contextvars.clear_contextvars()

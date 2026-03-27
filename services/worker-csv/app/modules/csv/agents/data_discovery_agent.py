@@ -33,14 +33,16 @@ async def data_discovery_agent(state: AnalysisState) -> Dict[str, Any]:
         detect_change_points, 
         compute_spectral_seasonality
     )
-    from app.modules.csv.utils.ingestion import ingest_csv_to_postgres
-
     # Generate a unique table name for Superset
     source_id = str(state.get("source_id", "default"))
     table_name = f"csv_{source_id.replace('-', '_')}"
 
-    # Trigger ingestion to Postgres for Superset visualization
-    await ingest_csv_to_postgres(file_path, table_name, str(state.get("tenant_id", "default")))
+    from app.modules.csv.utils.overview_tables import generate_overview_tables
+    try:
+        generate_overview_tables(df, table_name, str(state.get("tenant_id", "default")))
+    except Exception as e:
+        import structlog
+        structlog.get_logger(__name__).error("failed_overview_tables", error=str(e))
 
     total_cells = df.shape[0] * df.shape[1]
     null_cells = int(df.isnull().sum().sum())

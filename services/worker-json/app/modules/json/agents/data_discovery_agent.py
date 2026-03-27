@@ -58,9 +58,12 @@ async def data_discovery_agent(state: AnalysisState) -> Dict[str, Any]:
         flattened_data = flatten_json(data_list)
         df_flattened = pd.DataFrame(flattened_data)
         
-        # 3. Mirror to Postgres for Superset
-        from app.modules.json.utils.ingestion import ingest_to_postgres
-        await ingest_to_postgres(df_flattened, table_name, str(state.get("tenant_id", "default")))
+        # 3. Push structured EDA overview stats to Postgres for Superset
+        from app.modules.json.utils.overview_tables import generate_overview_tables
+        try:
+            generate_overview_tables(df_flattened, table_name, str(state.get("tenant_id", "default")))
+        except Exception as e:
+            logger.error("failed_overview_tables", error=str(e))
 
         # 4. Extract schema and compute stats
         from app.modules.json.utils.statistics import (

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { LayoutDashboard, FileWarning, Hash, Type } from 'lucide-react';
+import { LayoutDashboard, FileWarning, Hash, Type, TrendingUp, BarChart2 } from 'lucide-react';
+import Plot from 'react-plotly.js';
 
 interface DataProfilerProps {
   schema: any;
@@ -67,11 +68,46 @@ export default function DataProfiler({ schema }: DataProfilerProps) {
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto p-6 custom-scroll">
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard label="Rows" value={schema.row_count || schema.total_documents || 'N/A'} />
-            <StatCard label="Columns" value={schema.column_count || columns.length || 'N/A'} />
-            <StatCard label="Missing Cells" value={totalMissing} />
-            <StatCard label="Data Score" value={`${calculatedScore.toFixed(1)}%`} color={calculatedScore > 90 ? 'text-emerald-400' : 'text-amber-400'} />
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard label="Rows" value={schema.row_count || schema.total_documents || 'N/A'} />
+              <StatCard label="Columns" value={schema.column_count || columns.length || 'N/A'} />
+              <StatCard label="Missing Cells" value={totalMissing} />
+              <StatCard label="Data Score" value={`${calculatedScore.toFixed(1)}%`} color={calculatedScore > 90 ? 'text-emerald-400' : 'text-amber-400'} />
+            </div>
+
+            {schema.timeseries_data && (
+              <div className="w-full bg-slate-900/60 p-5 rounded-[24px] border border-slate-800 shadow-xl overflow-hidden h-[340px] flex flex-col group hover:border-[var(--primary)]/30 transition-all">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-4 h-4 text-violet-400" />
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-violet-400">{schema.timeseries_data.title}</h3>
+                </div>
+                <div className="flex-1 w-full relative">
+                  <Plot
+                    data={[{
+                      type: 'scatter',
+                      mode: 'lines+markers',
+                      x: schema.timeseries_data.x,
+                      y: schema.timeseries_data.y,
+                      line: { color: '#8b5cf6', shape: 'spline', width: 3 },
+                      marker: { color: '#0ea5e9', size: 6 },
+                      fill: 'tozeroy',
+                      fillcolor: 'rgba(139, 92, 246, 0.1)'
+                    }]}
+                    layout={{
+                      paper_bgcolor: 'transparent',
+                      plot_bgcolor: 'transparent',
+                      margin: { t: 10, r: 10, l: 40, b: 30 },
+                      xaxis: { color: '#475569', gridcolor: 'rgba(30, 41, 59, 0.5)', showline: false, zeroline: false },
+                      yaxis: { color: '#475569', gridcolor: 'rgba(30, 41, 59, 0.5)', showline: false, zeroline: false }
+                    }}
+                    useResizeHandler={true}
+                    style={{ width: '100%', height: '100%', position: 'absolute' }}
+                    config={{ displayModeBar: false, responsive: true }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -105,11 +141,40 @@ export default function DataProfiler({ schema }: DataProfilerProps) {
                   <h3 className="font-black text-[var(--primary)] text-sm uppercase tracking-tight">{col.name}</h3>
                   <span className="text-[10px] bg-slate-800 px-3 py-1 rounded-full text-slate-500 font-black uppercase tracking-widest">{col.dtype}</span>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <StatSub label="Unique" value={col.unique_count || 'N/A'} />
-                  {col.mean !== undefined && <StatSub label="Mean" value={Number(col.mean).toFixed(2)} />}
-                  {col.min !== undefined && <StatSub label="Min" value={col.min} />}
-                  {col.max !== undefined && <StatSub label="Max" value={col.max} />}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 col-span-1">
+                    <StatSub label="Unique" value={col.unique_count || 'N/A'} />
+                    {col.mean !== undefined && <StatSub label="Mean" value={Number(col.mean).toFixed(2)} />}
+                    {col.min !== undefined && <StatSub label="Min" value={col.min} />}
+                    {col.max !== undefined && <StatSub label="Max" value={col.max} />}
+                  </div>
+                  
+                  {col.chart_data && col.chart_data.x && (
+                    <div className="col-span-2 h-[140px] bg-black/40 rounded-xl overflow-hidden border border-slate-800/50 p-3 pt-1 relative">
+                       <div className="absolute top-2 right-3 z-10 opacity-50">
+                          <BarChart2 className="w-3 h-3 text-sky-400" />
+                       </div>
+                       <Plot
+                         data={[{
+                           type: col.chart_data.type,
+                           x: col.chart_data.x,
+                           y: col.chart_data.y,
+                           marker: { color: '#0ea5e9', opacity: 0.8, line: { color: '#0284c7', width: 1 } }
+                         }]}
+                         layout={{
+                           paper_bgcolor: 'transparent',
+                           plot_bgcolor: 'transparent',
+                           margin: { t: 5, r: 5, l: 30, b: 20 },
+                           xaxis: { color: '#475569', showgrid: false, zeroline: false },
+                           yaxis: { color: '#475569', showgrid: false, zeroline: false },
+                           bargap: 0.1
+                         }}
+                         useResizeHandler={true}
+                         style={{ width: '100%', height: '100%' }}
+                         config={{ displayModeBar: false, responsive: true }}
+                       />
+                    </div>
+                  )}
                 </div>
                 {(col.hurst_exponent || col.change_points) && (
                   <div className="mt-4 pt-4 border-t border-slate-800/50 flex gap-4">
@@ -139,22 +204,53 @@ export default function DataProfiler({ schema }: DataProfilerProps) {
                   <h3 className="font-black text-[var(--primary)] text-sm uppercase tracking-tight">{col.name}</h3>
                   <span className="text-[10px] bg-slate-800 px-3 py-1 rounded-full text-slate-500 font-black uppercase tracking-widest">{col.dtype}</span>
                 </div>
-                <div className="mb-4">
-                  <p className="text-[8px] text-slate-600 font-black uppercase tracking-widest mb-1">Unique Cardinals</p>
-                  <p className="text-xl font-black text-white tabular-nums">{col.unique_count || 'N/A'}</p>
-                </div>
-                {col.sample_values && col.sample_values.length > 0 && (
-                  <div>
-                    <p className="text-[8px] text-slate-600 font-black uppercase tracking-widest mb-2">Sample Spectrum</p>
-                    <div className="flex flex-wrap gap-2">
-                      {col.sample_values.slice(0, 5).map((val: any, idx: number) => (
-                        <span key={idx} className="text-[10px] bg-slate-800/80 text-slate-400 px-2.5 py-1 rounded-lg font-bold uppercase tracking-tight">
-                          {String(val)}
-                        </span>
-                      ))}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="col-span-1 flex flex-col gap-4">
+                    <div>
+                      <p className="text-[8px] text-slate-600 font-black uppercase tracking-widest mb-1">Unique Cardinals</p>
+                      <p className="text-xl font-black text-white tabular-nums">{col.unique_count || 'N/A'}</p>
                     </div>
+                    {col.sample_values && col.sample_values.length > 0 && (
+                      <div>
+                        <p className="text-[8px] text-slate-600 font-black uppercase tracking-widest mb-2">Sample Spectrum</p>
+                        <div className="flex flex-wrap gap-2">
+                          {col.sample_values.slice(0, 5).map((val: any, idx: number) => (
+                            <span key={idx} className="text-[10px] bg-slate-800/80 text-slate-400 px-2.5 py-1 rounded-lg font-bold uppercase tracking-tight">
+                              {String(val)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
+                  
+                  {col.chart_data && col.chart_data.x && (
+                    <div className="col-span-2 h-[140px] bg-black/40 rounded-xl overflow-hidden border border-slate-800/50 p-3 pt-1 relative">
+                       <div className="absolute top-2 right-3 z-10 opacity-50">
+                          <BarChart2 className="w-3 h-3 text-emerald-400" />
+                       </div>
+                       <Plot
+                         data={[{
+                           type: col.chart_data.type,
+                           x: col.chart_data.x,
+                           y: col.chart_data.y,
+                           marker: { color: '#10b981', opacity: 0.8, line: { color: '#059669', width: 1 } }
+                         }]}
+                         layout={{
+                           paper_bgcolor: 'transparent',
+                           plot_bgcolor: 'transparent',
+                           margin: { t: 5, r: 5, l: 30, b: 30 },
+                           xaxis: { color: '#475569', showgrid: false, zeroline: false, tickangle: -45 },
+                           yaxis: { color: '#475569', showgrid: false, zeroline: false },
+                           bargap: 0.2
+                         }}
+                         useResizeHandler={true}
+                         style={{ width: '100%', height: '100%' }}
+                         config={{ displayModeBar: false, responsive: true }}
+                       />
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
             {categoricalCols.length === 0 && <p className="text-slate-500 text-center py-8">No categorical columns found.</p>}

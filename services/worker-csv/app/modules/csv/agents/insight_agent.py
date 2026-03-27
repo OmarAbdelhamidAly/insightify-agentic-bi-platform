@@ -56,11 +56,30 @@ async def insight_agent(state: AnalysisState) -> Dict[str, Any]:
             "executive_summary": "Analysis could not be completed.",
         }
 
-    if "data" in analysis:
-        data_sample = analysis["data"][:20]
+    # Extract the true analytical result from the chain
+    result_payload = analysis.get("result")
+    
+    if result_payload is not None:
+        if isinstance(result_payload, list):
+            data_sample = result_payload[:10]
+        elif isinstance(result_payload, dict):
+            # For nested dicts (e.g. correlation_matrix), truncate inner values
+            data_sample = {}
+            for k, v in result_payload.items():
+                if isinstance(v, dict):
+                    # Truncate inner dicts to 5 keys max
+                    data_sample[k] = dict(list(v.items())[:5])
+                elif isinstance(v, list):
+                    data_sample[k] = v[:10]
+                else:
+                    data_sample[k] = v
+        else:
+            data_sample = result_payload
+    elif "dataframe" in analysis:
+        data_sample = analysis["dataframe"][:10]
     else:
-        # Flatten non-tabular results (like trend, correlation)
-        data_sample = {k: v for k, v in analysis.items() if k not in ("plan", "source_type")}
+        # Flatten non-tabular results safely, stripping extremely verbose context
+        data_sample = {k: v for k, v in analysis.items() if k not in ("plan", "source_type", "chain_outputs")}
 
     llm = get_llm(temperature=0)
 
@@ -77,10 +96,16 @@ async def insight_agent(state: AnalysisState) -> Dict[str, Any]:
         else:
             complexity_instruction = f"TONE: Investigative & Advanced. Dig into the 'why'."
 
+    # Hard-cap the serialized data to prevent token overruns (Groq 6K TPM limit)
+    data_str = json.dumps(data_sample, indent=2, default=str)
+    MAX_DATA_CHARS = 3000  # ~750 tokens, leaves room for prompt + response
+    if len(data_str) > MAX_DATA_CHARS:
+        data_str = data_str[:MAX_DATA_CHARS] + '\n... [truncated for brevity]'
+
     prompt = INSIGHT_PROMPT.format(
         question=state.get("question", ""),
         intent=state.get("intent", "comparison"),
-        data=json.dumps(data_sample, indent=2, default=str),
+        data=data_str,
         complexity_instruction=complexity_instruction
     )
 

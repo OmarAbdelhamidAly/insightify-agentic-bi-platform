@@ -46,6 +46,7 @@ async def _execute_pillar(job_id: str) -> dict:
     from langgraph.checkpoint.redis import AsyncRedisSaver
     redis_client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=False)
     checkpointer = AsyncRedisSaver(redis_client=redis_client)
+    await checkpointer.setup()
 
     # Initialize MongoDB client
     from app.infrastructure.mongo_client import MongoDBClient

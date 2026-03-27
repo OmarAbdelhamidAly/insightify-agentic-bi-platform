@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { AlertCircle, Maximize2, ExternalLink, Loader2 } from 'lucide-react';
 import { AnalysisAPI } from '../../services/api';
 import { embedDashboard } from '@superset-ui/embedded-sdk';
+import Plot from 'react-plotly.js';
 
 interface DynamicChartProps {
-  config: any; // Contains { embedded_id, internal_uuid, native_id } if superset
+  config: any; // Contains { embedded_id, internal_uuid, native_id } if superset, or { data, layout } if plotly
 }
 
 export default function DynamicChart({ config }: DynamicChartProps) {
@@ -13,10 +14,15 @@ export default function DynamicChart({ config }: DynamicChartProps) {
   const [supersetData, setSupersetData] = useState<{ token: string, url: string } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // 1. Determine if it's a Superset payload
-  const isSuperset = config?.embedded_id || config?.internal_uuid;
+  const isPlotly = config?.data && config?.layout;
+  const isSuperset = !isPlotly && (config?.embedded_id || config?.internal_uuid);
 
   useEffect(() => {
+    if (isPlotly) {
+      setLoading(false);
+      return;
+    }
+
     if (!isSuperset) {
       setLoading(false);
       return;
@@ -30,7 +36,6 @@ export default function DynamicChart({ config }: DynamicChartProps) {
         setSupersetData({ token: guest_token, url: superset_url });
         
         if (containerRef.current) {
-          // Clear any previous embeds
           containerRef.current.innerHTML = "";
           await embedDashboard({
             id: config.embedded_id,
@@ -52,7 +57,7 @@ export default function DynamicChart({ config }: DynamicChartProps) {
 
     mountDashboard();
     return () => { isMounted = false; };
-  }, [config, isSuperset]);
+  }, [config, isSuperset, isPlotly]);
 
   if (loading) {
     return (
@@ -63,12 +68,65 @@ export default function DynamicChart({ config }: DynamicChartProps) {
     );
   }
 
-  if (error || (!isSuperset && (!config || Object.keys(config).length === 0))) {
+  if (error || (!isSuperset && !isPlotly && (!config || Object.keys(config).length === 0))) {
     return (
       <div className="p-10 border border-slate-800/60 rounded-2xl bg-slate-900/30 text-center backdrop-blur-sm">
         <AlertCircle className="w-8 h-8 text-rose-500/50 mx-auto mb-3" />
         <p className="text-slate-400 text-sm font-medium">Visualization Port Offline</p>
         <p className="text-slate-500 text-xs mt-1 italic">{error || "The analytical engine generated results, but the visualization format was incompatible."}</p>
+      </div>
+    );
+  }
+
+  // ── Plotly Rendering ──────────────────────────────────────────────────────────
+  if (isPlotly) {
+    return (
+      <div className="w-full h-[500px] my-8 rounded-3xl bg-[#0f172a] border border-slate-700/50 shadow-2xl relative overflow-hidden group p-4 flex flex-col items-center justify-center">
+        <div className="absolute top-4 left-6 flex items-center gap-3 z-10 pointer-events-none">
+           <div className="w-1.5 h-1.5 rounded-full bg-sky-500 shadow-[0_0_8px_#0ea5e9]" />
+           <span className="text-[9px] uppercase tracking-widest text-slate-500 font-bold bg-slate-900/80 px-2 py-1 rounded backdrop-blur-md">Live Plotly Intelligence</span>
+        </div>
+        
+        <div className="w-full h-full mt-6">
+          <Plot
+            data={config.data}
+            layout={{
+              ...config.layout,
+              autosize: true,
+              paper_bgcolor: 'transparent',
+              plot_bgcolor: 'transparent',
+              font: { color: '#94a3b8', size: 12 },
+              title: config.layout?.title ? {
+                text: config.layout.title?.text || config.layout.title,
+                font: { color: '#e2e8f0', size: 15 },
+                x: 0.5,
+                xanchor: 'center'
+              } : undefined,
+              xaxis: {
+                ...config.layout?.xaxis,
+                color: '#64748b',
+                gridcolor: 'rgba(30, 41, 59, 0.5)',
+                title: config.layout?.xaxis?.title ? {
+                  text: config.layout.xaxis.title?.text || config.layout.xaxis.title,
+                  font: { color: '#94a3b8', size: 13 }
+                } : undefined
+              },
+              yaxis: {
+                ...config.layout?.yaxis,
+                color: '#64748b',
+                gridcolor: 'rgba(30, 41, 59, 0.5)',
+                title: config.layout?.yaxis?.title ? {
+                  text: config.layout.yaxis.title?.text || config.layout.yaxis.title,
+                  font: { color: '#94a3b8', size: 13 }
+                } : undefined
+              },
+              margin: { t: 45, r: 20, l: 60, b: 55 }
+            }}
+            useResizeHandler={true}
+            style={{ width: '100%', height: '100%' }}
+            config={{ responsive: true, displayModeBar: false }}
+          />
+        </div>
       </div>
     );
   }
@@ -110,7 +168,7 @@ export default function DynamicChart({ config }: DynamicChartProps) {
   return (
     <div className="w-full h-[450px] my-4 p-4 rounded-xl bg-slate-900/30 text-center flex flex-col items-center justify-center">
       <AlertCircle className="w-6 h-6 text-slate-600 mb-2" />
-      <p className="text-slate-500 text-xs italic">Legacy chart format detected. Please rerun the analysis to use Superset.</p>
+      <p className="text-slate-500 text-xs italic">Legacy chart format detected. Please rerun the analysis to use Plotly/Superset.</p>
     </div>
   );
 }

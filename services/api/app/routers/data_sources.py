@@ -8,6 +8,7 @@ import uuid
 from typing import Annotated, Optional, Any
 
 import pandas as pd
+import numpy as np
 import structlog
 from fastapi import APIRouter, BackgroundTasks, Body, Depends, File, HTTPException, Response, UploadFile, status, Form
 from sqlalchemy import select
@@ -33,20 +34,91 @@ router = APIRouter(prefix="/api/v1/data-sources", tags=["data-sources"])
 
 
 def _profile_dataframe(df: pd.DataFrame) -> dict:
-    """Build a lightweight schema profile from a DataFrame."""
+    """Build a lightweight schema profile with embedded visualization distributions from a DataFrame."""
+    columns = []
+    
+    # 1. Simple Date detection for Time-Series
+    datetime_cols = []
+    for col in df.columns:
+        if "date" in col.lower() or "time" in col.lower() or pd.api.types.is_datetime64_any_dtype(df[col]):
+            datetime_cols.append(col)
+
+    timeseries_data = None
+    if datetime_cols:
+        date_col = datetime_cols[0]
+        try:
+            temp_df = df.copy()
+            temp_df[date_col] = pd.to_datetime(temp_df[date_col], errors='coerce')
+            temp_df = temp_df.dropna(subset=[date_col])
+            
+            num_cols = df.select_dtypes(include='number').columns.tolist()
+            if num_cols:
+                val_col = num_cols[0]
+                ts = temp_df.groupby(temp_df[date_col].dt.to_period("M"))[val_col].mean().reset_index()
+                ts[date_col] = ts[date_col].astype(str)
+                timeseries_data = {
+                    "type": "scatter",
+                    "x": ts[date_col].tolist(),
+                    "y": ts[val_col].tolist(),
+                    "title": f"Trend: Average {val_col} over Time",
+                }
+            else:
+                ts = temp_df.groupby(temp_df[date_col].dt.to_period("M")).size().reset_index(name='count')
+                ts[date_col] = ts[date_col].astype(str)
+                timeseries_data = {
+                    "type": "scatter",
+                    "x": ts[date_col].tolist(),
+                    "y": ts['count'].tolist(),
+                    "title": f"Trend: Total Records over Time",
+                }
+        except Exception as e:
+            logger.warning("timeseries_profiling_failed", error=str(e), column=date_col)
+
+    # 2. Extract Distributions for every column
+    for col in df.columns:
+        dtype_str = str(df[col].dtype)
+        is_numeric = "int" in dtype_str or "float" in dtype_str or np.issubdtype(df[col].dtype, np.number)
+        
+        chart_data = None
+        if is_numeric:
+            try:
+                clean_series = df[col].dropna()
+                if len(clean_series) > 0:
+                    counts, bins = np.histogram(clean_series, bins=min(20, len(clean_series.unique())))
+                    bin_centers = 0.5 * (bins[:-1] + bins[1:])
+                    chart_data = {
+                        "type": "bar", # Render histogram natively as a Plotly bar chart
+                        "x": np.round(bin_centers, 2).tolist(),
+                        "y": counts.tolist(),
+                    }
+            except Exception:
+                pass
+        else:
+            try:
+                val_counts = df[col].value_counts().head(10)
+                if len(val_counts) > 0:
+                    chart_data = {
+                        "type": "bar",
+                        "x": val_counts.index.astype(str).tolist(),
+                        "y": val_counts.values.tolist(),
+                    }
+            except Exception:
+                pass
+
+        columns.append({
+            "name": col,
+            "dtype": dtype_str,
+            "null_count": int(df[col].isnull().sum()),
+            "unique_count": int(df[col].nunique()),
+            "sample_values": df[col].dropna().head(5).astype(str).tolist(),
+            "chart_data": chart_data
+        })
+
     return {
-        "columns": [
-            {
-                "name": col,
-                "dtype": str(df[col].dtype),
-                "null_count": int(df[col].isnull().sum()),
-                "unique_count": int(df[col].nunique()),
-                "sample_values": df[col].dropna().head(5).tolist(),
-            }
-            for col in df.columns
-        ],
+        "columns": columns,
         "row_count": len(df),
         "column_count": len(df.columns),
+        "timeseries_data": timeseries_data
     }
 
 
@@ -550,3 +622,26 @@ async def get_dashboard(
             detail="Data source not found",
         )
     return DataSourceResponse.model_validate(source)
+
+
+@router.get("/{source_id}/overview")
+async def get_overview(
+    source_id: uuid.UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    """Return the original JSON overview schema_summary."""
+    await verify_permission("query", str(source_id), current_user, db)
+    result = await db.execute(
+        select(DataSource).where(
+            DataSource.id == source_id,
+            DataSource.tenant_id == current_user.tenant_id,
+        )
+    )
+    source = result.scalar_one_or_none()
+    if source is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Data source not found",
+        )
+    return source.schema_json or {}

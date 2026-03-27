@@ -234,7 +234,7 @@ export default function MessageBubble({ message }: Props) {
                 )}
 
                 {/* Chart / Superset Dashboard */}
-                {message.job.chart_json && (
+                {message.job.chart_json && Object.keys(message.job.chart_json).length > 0 && (
                   <div className="w-full rounded-2xl overflow-hidden border border-slate-700/50 shadow-xl">
                     <div className="px-4 py-2.5 bg-slate-900/60 border-b border-slate-800 flex items-center gap-2">
                       <BarChart2 className="w-3.5 h-3.5 text-violet-400" />

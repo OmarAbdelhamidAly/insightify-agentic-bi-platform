@@ -56,7 +56,7 @@ export default function ChatInterface({ activeSourceIds }: ChatInterfaceProps) {
 
   useEffect(() => {
     if (activeSourceIds.length === 1) {
-      DataSourcesAPI.get(activeSourceIds[0])
+      DataSourcesAPI.getDataSource(activeSourceIds[0])
         .then(res => setSchema(res.schema_json))
         .catch(err => console.error("Failed to fetch schema", err));
     } else {
@@ -115,13 +115,13 @@ export default function ChatInterface({ activeSourceIds }: ChatInterfaceProps) {
             onClick={() => setViewMode('chat')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'chat' ? 'bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/20' : 'text-slate-500 hover:text-slate-200'}`}
           >
-            <MessageSquare className="w-3.5 h-3.5" /> Intelligence
+            <MessageSquare className="w-3.5 h-3.5" /> Intelligence (Plotly)
           </button>
           <button 
             onClick={() => setViewMode('profile')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'profile' ? 'bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/20' : 'text-slate-500 hover:text-slate-200'}`}
           >
-            <Database className="w-3.5 h-3.5" /> Profiler
+            <Database className="w-3.5 h-3.5" /> Auto-EDA
           </button>
         </div>
       )}
@@ -152,7 +152,7 @@ export default function ChatInterface({ activeSourceIds }: ChatInterfaceProps) {
         setInput={setInput}
         handleSubmit={handleSubmit}
         isProcessing={isProcessing}
-        disabled={activeSourceIds.length === 0 || viewMode === 'profile'}
+        disabled={activeSourceIds.length === 0 || viewMode !== 'chat'}
         depthIndex={depthIndex}
         setDepthIndex={setDepthIndex}
       />

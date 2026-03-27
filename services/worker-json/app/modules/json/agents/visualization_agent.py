@@ -1,5 +1,5 @@
 import json
-import uuid
+import re
 import structlog
 from typing import Any, Dict
 
@@ -7,96 +7,148 @@ logger = structlog.get_logger(__name__)
 
 from app.infrastructure.llm import get_llm
 from app.domain.analysis.entities import AnalysisState
-from app.modules.json.tools.superset_client import (
-    get_superset_client,
-    get_or_create_database,
-    create_virtual_dataset,
-    create_chart,
-    create_dashboard
-)
-from app.modules.json.tools.load_data_source import get_connection_string
 
-SUPERSET_VIZ_PROMPT = """You are a Principal Data Scientist and Lead Visualization Architect.
-Your core directive is to automatically configure premium, highly-insightful Apache Superset dashboards for JSON data.
+PLOTLY_VIZ_PROMPT = """You are a Principal Data Scientist and Lead Visualization Architect.
+Your core directive is to automatically configure premium, highly-insightful Plotly charts for analytical data.
 
 ### CHART INTELLIGENCE & SELECTION HEURISTICS
-Choose from:
-- echarts_timeseries_bar, echarts_timeseries_line, echarts_area, pie, table, big_number_total, treemap_v2, sunburst_v2, radar, bubble.
+You MUST choose the single MOST statistically powerful chart to answer the user's question, applying these rules:
+- **Time-Series / Trends**: Use "scatter" with mode="lines" or "lines+markers".
+- **Categorical Comparisons**: Use "bar" charts.
+- **Part-to-Whole / Hierarchies**: Use "pie".
+- **Outliers & Correlations**: Use "scatter" with mode="markers".
 
 ### EXECUTION DIRECTIVES
-- Return ONLY a valid JSON object with "viz_type" and "params".
-- No markdown formatting.
+You MUST output a strict JSON object containing TWO keys: "data" and "layout".
+The "data" must be an array of Plotly trace mapping objects.
+Because datasets are large, you MUST NOT include the raw data arrays. Instead, provide the EXACT COLUMN NAMES from the schema as "x_col", "y_col", "labels_col", or "values_col".
+Our engine will automatically extract these columns from the dataset and dynamically populate the actual 'x', 'y', 'labels', and 'values' arrays.
+
+Example for Bar/Line/Scatter:
+{{
+  "data": [
+    {{
+      "x_col": "category",
+      "y_col": "sales",
+      "type": "bar",
+      "name": "Sales",
+      "marker": {{ "color": "#0ea5e9" }}
+    }}
+  ],
+  "layout": {{ 
+    "title": "Sales by Category",
+    "xaxis": {{ "title": "Category" }},
+    "yaxis": {{ "title": "Sales" }}
+  }}
+}}
+
+Example for Pie:
+{{
+  "data": [
+    {{
+      "labels_col": "region",
+      "values_col": "revenue",
+      "type": "pie",
+      "hole": 0.4
+    }}
+  ],
+  "layout": {{ "title": "Revenue Distribution" }}
+}}
+
+CRITICAL RULES:
+- NEVER fabricate column names. They MUST correspond verbatim to the Columns provided below.
+- Return ONLY a valid JSON object.
+- NO markdown formatting (no ```json). NO explanation. NO preamble.
+
+**Query Result Summary**:
+Intent: {intent}
+Question: {question}
+Columns: {columns}
+Stochastic Data Sample: {data}
 """
 
+def _inject_plotly_data(chart_config: dict, dataset: list) -> dict:
+    """Hydrates the Plotly trace definitions with actual dataset arrays."""
+    if "data" not in chart_config or not isinstance(chart_config["data"], list):
+        return chart_config
+        
+    for trace in chart_config["data"]:
+        if "x_col" in trace:
+            col = trace.pop("x_col")
+            trace["x"] = [row.get(col) for row in dataset]
+        if "y_col" in trace:
+            col = trace.pop("y_col")
+            trace["y"] = [row.get(col) for row in dataset]
+        if "labels_col" in trace:
+            col = trace.pop("labels_col")
+            trace["labels"] = [row.get(col) for row in dataset]
+        if "values_col" in trace:
+            col = trace.pop("values_col")
+            trace["values"] = [row.get(col) for row in dataset]
+            
+    return chart_config
+
 async def visualization_agent(state: AnalysisState) -> Dict[str, Any]:
-    """Generate a Superset Chart and Dashboard dynamically for JSON data."""
+    """Generate a Plotly Chart dynamically for JSON data."""
     analysis = state.get("analysis_results") or {}
-    if not analysis or not analysis.get("data"):
+    dataset = analysis.get("data")
+    if not analysis or not dataset:
         return {"chart_json": None}
 
     llm = get_llm(temperature=0)
-    data_sample = analysis["data"][:10]
+    data_sample = dataset[:5]
     
-    prompt = SUPERSET_VIZ_PROMPT + f"\n\nIntent: {state.get('intent')}\nQuestion: {state.get('question')}\nColumns: {json.dumps(analysis.get('columns', []))}\nData: {json.dumps(data_sample, indent=2, default=str)}"
+    prompt = PLOTLY_VIZ_PROMPT.format(
+        intent=state.get("intent", "comparison"),
+        question=state.get("question", ""),
+        columns=json.dumps(analysis.get("columns", [])),
+        data=json.dumps(data_sample, indent=2, default=str),
+    )
 
+    content = None
     try:
         response = await llm.ainvoke(prompt)
-        content = response.content.strip()
-        if "```json" in content:
-            content = content.split("```json")[1].split("```")[0].strip()
-        elif "```" in content:
-            content = content.split("```")[1].split("```")[0].strip()
-        
-        chart_config = json.loads(content)
+        content = response.content
+        chart_config = _parse_json(content)
 
-        if not chart_config or "viz_type" not in chart_config or "params" not in chart_config:
-            chart_config = {"viz_type": "table", "params": {"all_columns": analysis.get("columns", [])}}
-        
-        chart_config["params"]["color_scheme"] = "supersetColors"
+        if not chart_config or "data" not in chart_config or "layout" not in chart_config:
+            logger.warning("invalid_plotly_config", content=content)
+            # Fallback barebones table interpretation or empty
+            return {"chart_json": None, "error": "Invalid Plotly schema."}
             
-        client = await get_superset_client()
-        try:
-            conn_string = get_connection_string(state)
-            if not conn_string:
-                from app.infrastructure.config import settings
-                conn_string = settings.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+        # Hydrate the data into the chart config
+        hydrated_config = _inject_plotly_data(chart_config, dataset)
 
-            db_id = await get_or_create_database(client, f"Analytic DB {state.get('source_id')}", conn_string)
-            
-            table_name = state.get("table_name")
-            if not table_name:
-                table_name = f"json_{str(state.get('source_id', 'default')).replace('-', '_')}"
-            
-            # The worker-json analysis_agent returns transformed data (forecast, aggregate, etc.) in `analysis["data"]`.
-            # To chart this transformed data in Superset, we must ingest it back into Postgres as a new table.
-            import pandas as pd
-            from sqlalchemy import create_engine
-            
-            res_table_name = f"res_{str(uuid.uuid4())[:8]}"
-            df = pd.DataFrame(analysis["data"])
-            
-            # Convert any complex types to string before saving
-            for c in df.columns:
-                if df[c].dtype == 'object':
-                    df[c] = df[c].astype(str)
-                    
-            engine = create_engine(conn_string)
-            df.to_sql(res_table_name, engine, if_exists='replace', index=False)
-            
-            sql = f"SELECT * FROM {res_table_name}"
-            v_table_name = f"v_ds_{str(uuid.uuid4())[:8]}"
-            dataset_id = await create_virtual_dataset(client, db_id, sql=sql, table_name=v_table_name)
-            
-            dashboard_id, internal_uuid, embedded_uuid = await create_dashboard(client, state.get("question", "JSON Analysis Dashboard"))
-            await create_chart(client, dataset_id, state.get("question", "Chart"), chart_config["viz_type"], chart_config["params"], dashboard_id=dashboard_id)
-
-            return {
-                "chart_json": {"embedded_id": embedded_uuid, "native_id": dashboard_id, "internal_uuid": internal_uuid}, 
-                "chart_engine": "superset"
-            }
-        finally:
-            await client.aclose()
+        return {
+            "chart_json": hydrated_config, 
+            "chart_engine": "plotly"
+        }
 
     except Exception as e:
-        logger.error("json_superset_failed", error=str(e))
-        return {"chart_json": None, "error": str(e)}
+        logger.error("json_plotly_failed", error=str(e), content=content)
+        return {"chart_json": None, "error": f"Plotly rendering failed: {e}"}
+
+def _parse_json(content: Any) -> Dict[str, Any]:
+    """Ultra-resilient JSON parser for LLM responses."""
+    if not isinstance(content, str) or not content.strip():
+        return {}
+    content = content.strip()
+    start_idx = content.find('{')
+    end_idx = content.rfind('}')
+    
+    if start_idx == -1 or end_idx == -1:
+        return {}
+        
+    json_str = content[start_idx : end_idx + 1]
+    try:
+        return json.loads(json_str)
+    except json.JSONDecodeError:
+        pass
+        
+    try:
+        cleaned = re.sub(r',\s*([\]}])', r'\1', json_str)
+        cleaned = re.sub(r'[\x00-\x1F\x7F]', '', cleaned)
+        return json.loads(cleaned)
+    except Exception:
+        pass
+    return {}

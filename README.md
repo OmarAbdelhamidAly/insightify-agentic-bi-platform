@@ -54,6 +54,7 @@ A user connects a data source, types a natural-language question, and the system
 | ⚡ **Auto-Analysis on Upload** | 5 pre-generated analyses are computed in the background the moment a data source is connected — users see instant insights on first open |
 | 🧠 **Insight Memory** | Successful SQL queries are saved as golden examples, improving future query generation through in-context learning |
 | 📊 **Reasoning Transparency** | Every LangGraph node output is captured in `thinking_steps` and surfaced in the UI — users see exactly what the agent was thinking |
+| 🧮 **Function-Driven Library** | Built-in deterministic Python execution engine equipped with `scikit-learn` and `scipy.stats` (KMeans, regression, T-tests) |
 
 ---
 
@@ -265,7 +266,7 @@ Four specialized Celery workers, each independently scalable:
 | Worker | Queue | Pipeline Nodes | Key Capabilities |
 |---|---|---|---|
 | `worker-sql` | `pillar.sql / pillar.sqlite / pillar.postgresql` | 11 | Schema discovery, HITL approval, zero-row reflection, hybrid PDF fusion, insight memory |
-| `worker-csv` | `pillar.csv` | 7 | Auto data cleaning, quality scoring, statistical analysis |
+| `worker-csv` | `pillar.csv` | 7 | Auto data cleaning, ML execution (KMeans/Regression), pipeline function-chaining |
 | `worker-json` | `pillar.json` | 5 | Structured event/log analysis |
 | `worker-pdf` | `pillar.pdf` | 4 | ColPali multi-vector RAG (text + image patches) |
 
@@ -353,6 +354,7 @@ START → [data_discovery] → needs_cleaning?
 ```
 
 Data quality scoring: null ratio + type consistency + outlier density → automatic cleaning if score < 0.9.
+The analysis phase now leverages the **Analytical Function Library**, dynamically chaining operations like `drop_nulls` → `clustering` using a secure in-memory execution loop.
 
 ---
 
@@ -622,8 +624,8 @@ pytest tests/ -v
 | **Primary Database** | PostgreSQL + SQLAlchemy async | 16 / 2.0.36 |
 | **Vector Database** | Qdrant (multi-vector ColPali) | Latest |
 | **Authentication** | JWT (python-jose) + bcrypt | 3.3.0 / 4.2.1 |
-| **Data Processing** | Pandas + NumPy | 2.2.3 / 1.26.4 |
-| **Visualization** | Plotly.js (frontend) + Plotly (backend) | CDN |
+| **Data Processing** | Pandas + NumPy + Scikit-Learn | 2.2.3 / 1.26.4 / Latest |
+| **Visualization** | Plotly.js (frontend) | CDN / SDK |
 | **Frontend** | React + TypeScript + Vite (+ legacy Vanilla JS SPA) | Latest |
 | **Migrations** | Alembic | 1.14.1 |
 | **Containerisation** | Docker Compose + Kubernetes (HPA) | — |
