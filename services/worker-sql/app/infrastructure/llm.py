@@ -15,7 +15,7 @@ def get_llm(temperature: float = 0, model: str | None = None) -> BaseChatModel:
     
     primary_model_name = model or settings.LLM_MODEL or "meta-llama/llama-3.1-8b-instruct"
     
-    def _make_gemini(m_name: str = "gemini-1.5-flash-latest"):
+    def _make_gemini(m_name: str = "gemini-2.0-flash-exp"):
         from langchain_openai import ChatOpenAI
         return ChatOpenAI(
             model=m_name,
@@ -26,7 +26,7 @@ def get_llm(temperature: float = 0, model: str | None = None) -> BaseChatModel:
             max_retries=0,
         )
 
-    def _make_openrouter(m: str = "google/gemini-1.5-flash"):
+    def _make_openrouter(m: str = "google/gemini-2.0-flash-001"):
         return ChatOpenAI(
             model=m,
             api_key=settings.OPENROUTER_API_KEY,
@@ -35,8 +35,8 @@ def get_llm(temperature: float = 0, model: str | None = None) -> BaseChatModel:
             max_tokens=2048,
             max_retries=1,
             default_headers={
-                "HTTP-Referer": "http://localhost:8000",
-                "X-Title": "DataAnalyst.AI",
+                "HTTP-Referer": "https://github.com/OmarAbdelhamidAly/NTI-grad-project",
+                "X-Title": "NTI Graduate Project AI Analyst"
             },
         )
 
@@ -70,7 +70,7 @@ def get_llm(temperature: float = 0, model: str | None = None) -> BaseChatModel:
         # Standard OpenRouter model format (e.g., anthropic/claude-3-5-haiku)
         llm = _make_openrouter(primary_model_name)
     elif "gemini" in primary_model_name.lower():
-        llm = _make_gemini("gemini-1.5-flash-latest" if "flash" in primary_model_name.lower() else "gemini-1.5-pro-latest")
+        llm = _make_gemini("gemini-2.0-flash-exp" if "flash" in primary_model_name.lower() else "gemini-1.5-pro")
     elif "llama-3" in primary_model_name.lower():
         llm = _make_groq(primary_model_name)
     else:
@@ -86,7 +86,7 @@ def get_llm(temperature: float = 0, model: str | None = None) -> BaseChatModel:
         fallbacks.append(_make_groq("llama-3.3-70b-versatile"))
 
     if settings.GEMINI_API_KEY and "gemini" not in primary_model_name:
-        fallbacks.append(_make_gemini("gemini-1.5-flash-latest"))
+        fallbacks.append(_make_gemini("gemini-2.0-flash-exp"))
 
     if fallbacks:
         return llm.with_fallbacks(fallbacks)

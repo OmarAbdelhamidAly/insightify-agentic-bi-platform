@@ -343,15 +343,19 @@ async def _run_indexing_core(
     from langchain_google_genai import ChatGoogleGenerativeAI
     
     primary_vision = ChatOpenAI(
-        model="google/gemini-flash-1.5", 
+        model="google/gemini-2.0-flash-001", 
         temperature=0,
         api_key=settings.OPENROUTER_API_KEY,
-        base_url="https://openrouter.ai/api/v1"
+        base_url="https://openrouter.ai/api/v1",
+        default_headers={
+            "HTTP-Referer": "https://github.com/OmarAbdelhamidAly/NTI-grad-project",
+            "X-Title": "NTI Graduate Project AI Analyst"
+        }
     )
     
     # Priority 2: Gemini Direct API (Free tier, slow with rate limits)
     fallback_vision = ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash-latest", 
+        model="gemini-2.0-flash-exp", 
         temperature=0,
         google_api_key=settings.GEMINI_API_KEY
     )
@@ -411,10 +415,7 @@ async def _run_indexing_core(
         
         prompt = "Extract all text, tables, and key visual elements from this document page. Provide a structured, searchable description. Focus on content that a user might search for."
         
-        # Safety Throttle: Because you haven't funded OpenRouter yet, it WILL fallback to Gemini Free.
-        # So we MUST keep this 8 second sleep to prevent Gemini Free from crashing with 429 Too Many Requests.
-        # You can delete this sleep line tonight after setting up OpenRouter credits!
-        await asyncio.sleep(8)
+        # Throttle removed — OpenRouter is active and funded.
         
         message = HumanMessage(content=[
             {"type": "text", "text": prompt},
