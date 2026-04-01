@@ -150,7 +150,11 @@ def build_sql_graph(checkpointer: Any = None) -> Any:
     graph.add_edge("human_approval", "execution")
 
     def route_after_execution(state: AnalysisState) -> Literal["reflection", "hybrid_fusion"]:
-        if state.get("error") or state.get("reflection_context"):
+        # Only retry via reflection if we haven't exceeded max retries.
+        # Without this check, reflection → execution → reflection creates an infinite loop.
+        has_issue = state.get("error") or state.get("reflection_context")
+        under_retry_limit = state.get("retry_count", 0) < 3
+        if has_issue and under_retry_limit:
             return "reflection"
         return "hybrid_fusion"
 
@@ -163,7 +167,10 @@ def build_sql_graph(checkpointer: Any = None) -> Any:
         }
     )
 
-    graph.add_edge("reflection", "analysis_generator")
+    # After reflection fixes the SQL, re-execute it directly.
+    # Do NOT loop back to analysis_generator — that would re-run the LLM
+    # from scratch and risk it generating a simpler fallback query.
+    graph.add_edge("reflection", "execution")
     graph.add_edge("hybrid_fusion", "visualization")
     graph.add_edge("visualization", "insight")
     graph.add_edge("insight", "verifier")

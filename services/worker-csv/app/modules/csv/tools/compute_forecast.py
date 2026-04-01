@@ -76,9 +76,12 @@ def compute_forecast(
         actuals['ds'] = actuals['ds'].dt.strftime('%Y-%m-%d %H:%M:%S')
         merged = results.merge(actuals, on='ds', how='left')
         
+        forecast_records = merged.to_dict(orient='records')
         return {
             "method": "prophet",
-            "forecast": merged.to_dict(orient='records'),
+            "forecast": forecast_records,
+            "data": forecast_records,  # alias for visualization_agent compatibility
+            "columns": list(merged.columns),
             "periods": periods,
             "freq": freq,
             "metrics": {
@@ -113,12 +116,14 @@ def compute_forecast(
                 'yhat_lower': forecast_values.values * 0.9, # Simple bands for ARIMA fallback
                 'yhat_upper': forecast_values.values * 1.1
             })
-            
+
             combined = pd.concat([historical, future_df], ignore_index=True)
-            
+            combined_records = combined.to_dict(orient='records')
             return {
                 "method": "arima_fallback",
-                "forecast": combined.to_dict(orient='records'),
+                "forecast": combined_records,
+                "data": combined_records,  # alias for visualization_agent compatibility
+                "columns": list(combined.columns),
                 "periods": periods,
                 "freq": freq,
                 "warning": "Forecast generated using ARIMA fallback as Prophet was unavailable or failed."

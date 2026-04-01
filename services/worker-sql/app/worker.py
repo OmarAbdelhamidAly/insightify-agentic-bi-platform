@@ -41,6 +41,8 @@ async def _execute_pillar(job_id: str) -> dict:
     from app.models.analysis_job import AnalysisJob
     from app.models.analysis_result import AnalysisResult
     from app.models.data_source import DataSource
+    from app.models.metric import BusinessMetric
+    from app.models.policy import SystemPolicy
     from app.use_cases.analysis.run_pipeline import get_pipeline
 
     # Instantiate fresh checkpointer for the current loop
@@ -62,7 +64,7 @@ async def _execute_pillar(job_id: str) -> dict:
             ds_res = await db.execute(select(DataSource).where(DataSource.id == job.source_id))
             source = ds_res.scalar_one_or_none()
 
-            thread_id = str(job.id)
+            thread_id = f"{job.id}_{source.type}"
             config = {"configurable": {"thread_id": thread_id}}
             
             pipeline = get_pipeline(source.type, checkpointer=checkpointer)
@@ -99,6 +101,12 @@ async def _execute_pillar(job_id: str) -> dict:
             existing_state = await pipeline.aget_state(config)
             is_resuming = bool(existing_state.next)
             
+            m_result = await db.execute(select(BusinessMetric).where(BusinessMetric.tenant_id == job.tenant_id))
+            metrics = [{"name": m.name, "definition": m.definition, "formula": m.formula or "N/A"} for m in m_result.scalars().all()]
+            
+            p_result = await db.execute(select(SystemPolicy).where(SystemPolicy.tenant_id == job.tenant_id))
+            policies = [{"name": p.name, "type": p.rule_type, "description": p.description} for p in p_result.scalars().all()]
+
             graph_input = None if is_resuming else {
                 "tenant_id": str(job.tenant_id),
                 "user_id": str(job.user_id),
@@ -106,14 +114,11 @@ async def _execute_pillar(job_id: str) -> dict:
                 "source_id": str(job.source_id),
                 "source_type": source.type,
                 "kb_id": str(job.kb_id) if job.kb_id else None,
-                # ── Critical: DB connection info ───────────────────────────────
-                # These were previously missing, causing the pillar graph to have
-                # no connection path → data_discovery_agent gets empty schema →
-                # analysis_agent generates SQL on non-existent tables → 0 rows.
                 "file_path": source.file_path,
                 "config_encrypted": source.config_encrypted,
-                # Pre-profiled schema from the API upload (avoids re-discovery)
                 "schema_summary": source.schema_json or {},
+                "business_metrics": metrics,
+                "system_policies": policies,
             }
 
             logger.info("graph_execution_started", job_id=job_id, is_resuming=is_resuming, start_node=existing_state.next)

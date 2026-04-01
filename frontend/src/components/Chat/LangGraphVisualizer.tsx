@@ -48,18 +48,18 @@ interface Topology {
 
 const SQL_TOPOLOGY: Topology = {
   nodes: {
-    data_discovery: { x: 80, y: 50, label: 'Data Discovery', icon: <Search className="w-5 h-5" /> },
-    analysis_generator: { x: 260, y: 50, label: 'Analysis Strategy', icon: <Brain className="w-5 h-5" /> },
-    backtrack: { x: 260, y: 150, label: 'Optimization Loop', icon: <RefreshCcw className="w-5 h-5" /> },
-    human_approval: { x: 440, y: 50, label: 'Human Approval', icon: <UserCheck className="w-5 h-5" /> },
-    execution: { x: 620, y: 50, label: 'Execution', icon: <Play className="w-5 h-5" /> },
-    hybrid_fusion: { x: 800, y: 50, label: 'Context Fusion', icon: <Database className="w-5 h-5" /> },
-    visualization: { x: 800, y: 150, label: 'Visualization', icon: <BarChart3 className="w-5 h-5" /> },
-    insight: { x: 620, y: 150, label: 'Insight Extraction', icon: <Lightbulb className="w-5 h-5" /> },
-    verifier: { x: 440, y: 150, label: 'AI Verification', icon: <ShieldCheck className="w-5 h-5" /> },
-    recommendation: { x: 260, y: 250, label: 'Recommendation', icon: <Lightbulb className="w-5 h-5" /> },
-    memory_persistence: { x: 440, y: 250, label: 'Memory Persistence', icon: <Layers className="w-5 h-5" /> },
-    output_assembler: { x: 80, y: 150, label: 'Output Assembly', icon: <FileText className="w-5 h-5" /> },
+    data_discovery: { x: 75, y: 50, label: 'Data Discovery', icon: <Search className="w-5 h-5" /> },
+    analysis_generator: { x: 240, y: 50, label: 'Analysis Strategy', icon: <Brain className="w-5 h-5" /> },
+    backtrack: { x: 240, y: 160, label: 'Optimization Loop', icon: <RefreshCcw className="w-5 h-5" /> },
+    human_approval: { x: 405, y: 50, label: 'Human Approval', icon: <UserCheck className="w-5 h-5" /> },
+    execution: { x: 570, y: 50, label: 'Execution', icon: <Play className="w-5 h-5" /> },
+    hybrid_fusion: { x: 735, y: 50, label: 'Context Fusion', icon: <Database className="w-5 h-5" /> },
+    visualization: { x: 735, y: 160, label: 'Visualization', icon: <BarChart3 className="w-5 h-5" /> },
+    insight: { x: 570, y: 160, label: 'Insight Extraction', icon: <Lightbulb className="w-5 h-5" /> },
+    verifier: { x: 405, y: 160, label: 'AI Verification', icon: <ShieldCheck className="w-5 h-5" /> },
+    recommendation: { x: 240, y: 270, label: 'Recommendation', icon: <Lightbulb className="w-5 h-5" /> },
+    memory_persistence: { x: 405, y: 270, label: 'Memory Persistence', icon: <Layers className="w-5 h-5" /> },
+    output_assembler: { x: 75, y: 160, label: 'Output Assembly', icon: <FileText className="w-5 h-5" /> },
   },
   edges: [
     { from: 'data_discovery', to: 'analysis_generator' },
@@ -80,16 +80,16 @@ const SQL_TOPOLOGY: Topology = {
 
 const CSV_TOPOLOGY: Topology = {
   nodes: {
-    data_discovery: { x: 80, y: 50, label: 'Data Discovery', icon: <Search className="w-5 h-5" /> },
-    data_cleaning: { x: 260, y: 50, label: 'Auto-Cleaning', icon: <Layers className="w-5 h-5" /> },
-    guardrail: { x: 440, y: 50, label: 'Governance', icon: <ShieldCheck className="w-5 h-5" /> },
-    analysis: { x: 620, y: 50, label: 'Deep Analysis', icon: <Brain className="w-5 h-5" /> },
-    reflection: { x: 620, y: 150, label: 'Self-Reflection', icon: <RefreshCcw className="w-5 h-5" /> },
-    visualization: { x: 800, y: 50, label: 'Visualization', icon: <BarChart3 className="w-5 h-5" /> },
-    insight: { x: 800, y: 150, label: 'Strategic Insight', icon: <Lightbulb className="w-5 h-5" /> },
-    recommendation: { x: 620, y: 250, label: 'Recommendation', icon: <Lightbulb className="w-5 h-5" /> },
-    save_cache: { x: 440, y: 250, label: 'Semantic Caching', icon: <Database className="w-5 h-5" /> },
-    output_assembler: { x: 260, y: 250, label: 'Output Assembly', icon: <FileText className="w-5 h-5" /> },
+    data_discovery: { x: 75, y: 50, label: 'Data Discovery', icon: <Search className="w-5 h-5" /> },
+    data_cleaning: { x: 240, y: 50, label: 'Auto-Cleaning', icon: <Layers className="w-5 h-5" /> },
+    guardrail: { x: 405, y: 50, label: 'Governance', icon: <ShieldCheck className="w-5 h-5" /> },
+    analysis: { x: 570, y: 50, label: 'Deep Analysis', icon: <Brain className="w-5 h-5" /> },
+    reflection: { x: 570, y: 160, label: 'Self-Reflection', icon: <RefreshCcw className="w-5 h-5" /> },
+    visualization: { x: 735, y: 50, label: 'Visualization', icon: <BarChart3 className="w-5 h-5" /> },
+    insight: { x: 735, y: 160, label: 'Strategic Insight', icon: <Lightbulb className="w-5 h-5" /> },
+    recommendation: { x: 570, y: 270, label: 'Recommendation', icon: <Lightbulb className="w-5 h-5" /> },
+    save_cache: { x: 405, y: 270, label: 'Semantic Caching', icon: <Database className="w-5 h-5" /> },
+    output_assembler: { x: 240, y: 270, label: 'Output Assembly', icon: <FileText className="w-5 h-5" /> },
   },
   edges: [
     { from: 'data_discovery', to: 'data_cleaning' },
@@ -107,15 +107,15 @@ const CSV_TOPOLOGY: Topology = {
 
 const JSON_TOPOLOGY: Topology = {
   nodes: {
-    data_discovery: { x: 100, y: 50, label: 'Data Discovery', icon: <Search className="w-5 h-5" /> },
-    guardrail: { x: 300, y: 50, label: 'Guardrails', icon: <ShieldCheck className="w-5 h-5" /> },
-    analysis: { x: 500, y: 50, label: 'Structure Analysis', icon: <Brain className="w-5 h-5" /> },
-    reflection: { x: 500, y: 150, label: 'Pivot Loop', icon: <RefreshCcw className="w-5 h-5" /> },
-    visualization: { x: 700, y: 50, label: 'Visualization', icon: <BarChart3 className="w-5 h-5" /> },
-    insight: { x: 700, y: 150, label: 'Insight', icon: <Lightbulb className="w-5 h-5" /> },
-    recommendation: { x: 500, y: 250, label: 'Recommendation', icon: <Lightbulb className="w-5 h-5" /> },
-    save_cache: { x: 300, y: 250, label: 'Edge Cache', icon: <Database className="w-5 h-5" /> },
-    output_assembler: { x: 100, y: 150, label: 'Output Assembly', icon: <FileText className="w-5 h-5" /> },
+    data_discovery: { x: 80, y: 50, label: 'Data Discovery', icon: <Search className="w-5 h-5" /> },
+    guardrail: { x: 260, y: 50, label: 'Guardrails', icon: <ShieldCheck className="w-5 h-5" /> },
+    analysis: { x: 440, y: 50, label: 'Structure Analysis', icon: <Brain className="w-5 h-5" /> },
+    reflection: { x: 440, y: 160, label: 'Pivot Loop', icon: <RefreshCcw className="w-5 h-5" /> },
+    visualization: { x: 620, y: 50, label: 'Visualization', icon: <BarChart3 className="w-5 h-5" /> },
+    insight: { x: 620, y: 160, label: 'Insight', icon: <Lightbulb className="w-5 h-5" /> },
+    recommendation: { x: 440, y: 270, label: 'Recommendation', icon: <Lightbulb className="w-5 h-5" /> },
+    save_cache: { x: 260, y: 270, label: 'Edge Cache', icon: <Database className="w-5 h-5" /> },
+    output_assembler: { x: 80, y: 160, label: 'Output Assembly', icon: <FileText className="w-5 h-5" /> },
   },
   edges: [
     { from: 'data_discovery', to: 'guardrail' },
@@ -132,13 +132,32 @@ const JSON_TOPOLOGY: Topology = {
 
 const PDF_TOPOLOGY: Topology = {
   nodes: {
-    retrieval: { x: 100, y: 100, label: 'Deep Vision RAG', icon: <FileDown className="w-5 h-5" /> },
-    hybrid_extraction: { x: 250, y: 100, label: 'Hybrid OCR', icon: <Layers className="w-5 h-5" /> },
-    output_assembler: { x: 500, y: 100, label: 'Output Assembly', icon: <FileText className="w-5 h-5" /> },
+    refine: { x: 60, y: 140, label: 'Query Refine', icon: <RefreshCcw className="w-5 h-5" /> },
+    router: { x: 180, y: 140, label: 'Intent Router', icon: <Network className="w-5 h-5" /> },
+    chat: { x: 400, y: 50, label: 'Direct Chat', icon: <Brain className="w-5 h-5" /> },
+    retrieval: { x: 300, y: 210, label: 'Retrieval RAG', icon: <Search className="w-5 h-5" /> },
+    vision_synthesis: { x: 440, y: 130, label: 'Deep Vision', icon: <Layers className="w-5 h-5" /> },
+    text_synthesis: { x: 440, y: 210, label: 'Fast Text', icon: <FileText className="w-5 h-5" /> },
+    ocr_synthesis: { x: 440, y: 290, label: 'Hybrid OCR', icon: <FileDown className="w-5 h-5" /> },
+    verifier: { x: 560, y: 210, label: 'AI Verifier', icon: <ShieldCheck className="w-5 h-5" /> },
+    analyst: { x: 670, y: 130, label: 'Analyst', icon: <Lightbulb className="w-5 h-5" /> },
+    output_assembler: { x: 770, y: 210, label: 'Output Assembly', icon: <CheckCircle2 className="w-5 h-5" /> },
   },
   edges: [
-    { from: 'retrieval', to: 'output_assembler' },
-    { from: 'hybrid_extraction', to: 'output_assembler' },
+    { from: 'refine', to: 'router' },
+    { from: 'router', to: 'chat' },
+    { from: 'router', to: 'retrieval' },
+    { from: 'retrieval', to: 'vision_synthesis' },
+    { from: 'retrieval', to: 'text_synthesis' },
+    { from: 'retrieval', to: 'ocr_synthesis' },
+    { from: 'retrieval', to: 'refine', curve: 'left' },
+    { from: 'vision_synthesis', to: 'verifier' },
+    { from: 'text_synthesis', to: 'verifier' },
+    { from: 'ocr_synthesis', to: 'verifier' },
+    { from: 'verifier', to: 'analyst' },
+    { from: 'verifier', to: 'vision_synthesis', curve: 'left' },
+    { from: 'chat', to: 'output_assembler' },
+    { from: 'analyst', to: 'output_assembler' },
   ]
 };
 
@@ -181,8 +200,8 @@ export function LangGraphVisualizer({ steps, currentStatus, sourceType = 'sql' }
         </div>
       </div>
 
-      <div className="relative w-full h-[320px] mb-6 select-none overflow-x-auto overflow-y-hidden no-scrollbar">
-        <svg className="absolute inset-0 w-[800px] h-[300px]" style={{ minWidth: '800px' }}>
+      <div className="relative w-full h-[360px] mb-6 select-none overflow-x-auto overflow-y-hidden no-scrollbar">
+        <svg className="absolute inset-0 h-[340px]" style={{ width: '820px', minWidth: '820px' }}>
           <defs>
             <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155" />

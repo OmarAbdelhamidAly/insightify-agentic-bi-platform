@@ -17,7 +17,7 @@ Given a user's question, a data source schema, and a dictionary of business metr
 2. **relevant_columns**: List of specific column names from the schemas required.
 3. **required_pillars**: List of data pillars required to answer (e.g., ["sql", "pdf", "csv"]).
 4. **time_range**: Extract specific periods if mentioned.
-5. **clarification_needed**: Request more info if vague. If intent is 'greeting' or 'identity', provide a friendly, dynamic conversational response acting as OpenQ.AI (an autonomous AI data platform) based on the context.
+5. **clarification_needed**: Request more info if vague. If intent is 'greeting' or 'identity', provide a friendly, dynamic conversational response acting as Insightify.AI (an autonomous AI data platform) based on the context.
 
 Respond in the following STRICT JSON format:
 {{
@@ -114,7 +114,7 @@ async def intake_agent(state: AnalysisState) -> Dict[str, Any]:
         intent = parsed.get("intent", "comparison")
         
         if intent in ["greeting", "identity"]:
-            msg = parsed.get("clarification_needed", "Hello! I am OpenQ.AI, your autonomous data intelligence platform.")
+            msg = parsed.get("clarification_needed", "Hello! I am Insightify.AI, your autonomous data intelligence platform.")
             return {
                 "intent": intent,
                 "relevant_columns": [],

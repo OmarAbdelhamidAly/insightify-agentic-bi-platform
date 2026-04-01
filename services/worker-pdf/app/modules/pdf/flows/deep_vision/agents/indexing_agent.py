@@ -348,8 +348,8 @@ async def _run_indexing_core(
         api_key=settings.OPENROUTER_API_KEY,
         base_url="https://openrouter.ai/api/v1",
         default_headers={
-            "HTTP-Referer": "https://github.com/OmarAbdelhamidAly/NTI-grad-project",
-            "X-Title": "NTI Graduate Project AI Analyst"
+            "HTTP-Referer": "https://insightify.ai",
+            "X-Title": "Insightify Business Intelligence Assistant"
         }
     )
     

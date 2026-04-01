@@ -71,21 +71,22 @@ async def invite_user(
     )
     db.add(new_user)
     await db.flush()
-    # Eagerly load tenant after insert for response
+    
+    # Eagerly load tenant and group after insert for response
     result = await db.execute(
         select(User)
-        .where(User.id == user.id)
-        .options(selectinload(User.tenant))
+        .where(User.id == new_user.id)
+        .options(selectinload(User.tenant), selectinload(User.group))
     )
     user = result.scalar_one()
 
     logger.info(
-        "user_invited",
-        tenant_id=str(admin.tenant_id),
-        invited_by=str(admin.id),
+        "user_created_directly",
+        tenant_id=str(current_user.tenant_id),
+        created_by=str(current_user.id),
         new_user_id=str(user.id),
-        email=body.email,
-        role=body.role,
+        email=request.email,
+        role=request.role,
     )
 
     return UserResponse.model_validate(user)

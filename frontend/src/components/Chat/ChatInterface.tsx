@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Sparkles, Loader2, Database, MessageSquare, Mic, Zap, CheckCircle, ArrowRight, Flag, ShieldCheck } from 'lucide-react';
 import { AnalysisAPI, DataSourcesAPI, VoiceAPI } from '../../services/api';
 import type { AnalysisJob } from '../../services/api';
@@ -52,15 +52,44 @@ export default function ChatInterface({ activeSourceIds }: ChatInterfaceProps) {
 
   const [schema, setSchema] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const userScrolledUp = useRef(false);
   const { isProcessing, setIsProcessing, startPolling } = useAnalysisPolling();
 
-  const scrollToBottom = () => {
-    if (viewMode === 'chat') {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  // Track if user has scrolled up manually
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    // If user is more than 150px from the bottom, consider them "scrolled up"
+    userScrolledUp.current = distanceFromBottom > 150;
+  }, []);
 
-  useEffect(() => { scrollToBottom(); }, [messages, viewMode]);
+  const scrollToBottom = useCallback((force = false) => {
+    if (viewMode !== 'chat') return;
+    if (!force && userScrolledUp.current) return; // respect user scroll position
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [viewMode]);
+
+  // Auto-scroll only when new messages arrive and the user is near the bottom
+  useEffect(() => { scrollToBottom(); }, [messages]);
+
+  // When switching to chat view always go to bottom
+  useEffect(() => {
+    if (viewMode === 'chat') {
+      userScrolledUp.current = false;
+      scrollToBottom(true);
+    }
+  }, [viewMode]);
+
+  // Re-focus input after processing finishes
+  useEffect(() => {
+    if (!isProcessing) {
+      // Small delay to make sure the DOM has updated
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [isProcessing]);
 
   useEffect(() => {
     if (activeSourceIds.length === 1) {
@@ -165,7 +194,13 @@ export default function ChatInterface({ activeSourceIds }: ChatInterfaceProps) {
   };
 
   return (
-    <div className="flex flex-col h-full w-full relative z-0">
+    <div className="flex flex-col h-full w-full relative z-0 overflow-hidden bg-[#05070a]">
+      {/* ── Background Ambiance ───────────────────────────────── */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full animate-blob opacity-60"></div>
+        <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[30%] bg-purple-500/10 blur-[100px] rounded-full animate-blob delay-1000 opacity-40"></div>
+        <div className="absolute top-[30%] right-[10%] w-[20%] h-[20%] bg-sky-500/5 blur-[80px] rounded-full animate-blob delay-500"></div>
+      </div>
       {/* View Toggle - Only for single source profiling */}
       {activeSourceIds.length === 1 && (
         <div className="absolute top-4 right-8 z-10 flex gap-1 bg-[#171033]/60 backdrop-blur-xl p-1 border border-slate-700/50 rounded-2xl shadow-2xl">
@@ -189,13 +224,13 @@ export default function ChatInterface({ activeSourceIds }: ChatInterfaceProps) {
           <DataProfiler schema={schema} />
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto px-4 py-4 pt-4 sm:px-8 xl:px-20 custom-scroll">
+        <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-4 py-4 pt-4 sm:px-8 xl:px-20 custom-scroll">
           {activeSourceIds.length === 0 ? (
             <EmptyStateSelectSource />
           ) : messages.length === 0 ? (
             <EmptyStateWelcome setInput={setInput} schema={schema} />
           ) : (
-            <div className="max-w-5xl mx-auto space-y-8 pb-64">
+            <div className="max-w-full xl:max-w-[95%] mx-auto space-y-8 pb-64 px-2">
               {Array.isArray(messages) && messages.map((msg) => (
                 <MessageBubble 
                   key={msg.id} 
@@ -230,6 +265,7 @@ export default function ChatInterface({ activeSourceIds }: ChatInterfaceProps) {
         handleSubmit={handleSubmit}
         isProcessing={isProcessing}
         disabled={activeSourceIds.length === 0 || viewMode === 'profile' || !!hitlState}
+        inputRef={inputRef}
       />
     </div>
   );
@@ -294,7 +330,7 @@ function HITLCard({
           </div>
           <div>
             <p className="text-[10px] font-black text-amber-400 uppercase tracking-[0.2em] mb-1">
-              🛡️ Sovereign Intelligence — Checkpoint {currentIndex}/{pillars.length}
+              🛡️ Insightify — Governance Checkpoint {currentIndex}/{pillars.length}
             </p>
             <h3 className="text-white font-black text-base">
               Step {currentIndex} Complete — Awaiting Command
@@ -364,7 +400,7 @@ function EmptyStateSelectSource() {
       id: "02",
       title: "Cross-Correlate",
       ar: "ربط البيانات",
-      desc: "OpenQ.AI automatically links disparate sources in memory.",
+      desc: "Insightify automatically links disparate sources in memory.",
       icon: <Sparkles className="w-5 h-5" />
     },
     {
@@ -383,7 +419,7 @@ function EmptyStateSelectSource() {
           <div className="absolute -inset-4 bg-[var(--primary)]/5 blur-2xl rounded-full animate-pulse"></div>
           <Sparkles className="w-8 h-8 text-[var(--primary)] relative z-10" />
         </div>
-        <h2 className="text-3xl font-black text-white tracking-tighter uppercase mb-2">Sovereign Intelligence</h2>
+        <h2 className="text-3xl font-black text-white tracking-tighter uppercase mb-2">Insightify</h2>
         <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">Autonomous Multi-Source Synthesis</p>
       </div>
 
@@ -448,9 +484,10 @@ interface ChatInputProps {
   handleSubmit: (e: React.FormEvent) => void;
   isProcessing: boolean;
   disabled: boolean;
+  inputRef?: React.RefObject<HTMLTextAreaElement>;
 }
 
-function ChatInput({ input, setInput, handleSubmit, isProcessing, disabled }: ChatInputProps) {
+function ChatInput({ input, setInput, handleSubmit, isProcessing, disabled, inputRef }: ChatInputProps) {
   const [isRecording, setIsRecording] = useState(false);
 
   const handleVoiceSearch = async () => {
@@ -477,20 +514,23 @@ function ChatInput({ input, setInput, handleSubmit, isProcessing, disabled }: Ch
 
   return (
     <div className="absolute bottom-0 w-full bg-gradient-to-t from-[#0a0d17] via-[#0a0d17]/95 to-transparent pt-20 pb-8 px-6 pointer-events-none">
-      <div className="max-w-4xl mx-auto relative group pointer-events-auto">
-        <div className="absolute -inset-1 bg-gradient-to-r from-[var(--primary)] to-[var(--primary-alt)] rounded-[32px] opacity-10 group-hover:opacity-20 blur-xl transition duration-500"></div>
-        <form onSubmit={handleSubmit} className="relative flex items-center bg-[#0a0d17]/80 backdrop-blur-3xl border border-slate-800/50 rounded-[28px] p-2.5 shadow-2xl transition-all group-focus-within:border-[var(--primary)]/40">
+      <div className="max-w-full xl:max-w-[80%] mx-auto relative group pointer-events-auto px-4">
+        <div className="absolute -inset-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-[34px] opacity-10 group-focus-within:opacity-40 group-hover:opacity-25 blur-2xl transition-all duration-700"></div>
+        <form onSubmit={handleSubmit} className="relative flex items-center bg-[#0d111c]/90 backdrop-blur-3xl border border-white/5 rounded-[28px] p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all group-focus-within:border-indigo-500/50 group-focus-within:bg-[#0a0d17]">
           <textarea
+            ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={
               disabled && !isProcessing
                 ? "Awaiting command — respond to the checkpoint above..."
-                : isRecording
-                  ? "Listening to directive..."
-                  : "Execute a complex analytical inquiry..."
+                : isProcessing
+                  ? "Processing... you can type your next question"
+                  : isRecording
+                    ? "Listening to directive..."
+                    : "Execute a complex analytical inquiry..."
             }
-            disabled={disabled || isProcessing}
+            disabled={disabled}
             className={`resize-none flex-1 bg-transparent text-slate-200 placeholder-slate-600 px-5 py-4 outline-none min-h-[64px] custom-scroll text-sm font-bold transition-all ${isRecording ? 'text-red-400' : ''} ${disabled ? 'opacity-40' : ''}`}
             rows={1}
             onKeyDown={(e) => {

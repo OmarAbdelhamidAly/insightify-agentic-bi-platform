@@ -59,12 +59,15 @@ class AnalysisResultResponse(BaseModel):
     chart_engine: Optional[str] = "echarts"
     insight_report: Optional[str] = None
     executive_summary: Optional[str] = None
-    recommendations: Optional[List[RecommendationItem]] = None
+    recommendations_json: Optional[Any] = Field(default=None, validation_alias="recommendations")
     follow_up_suggestions: Optional[List[str]] = None
     visual_context: Optional[List[Dict[str, Any]]] = None
     generated_sql: Optional[str] = None
 
-    model_config = {"from_attributes": True}
+    model_config = {
+        "from_attributes": True,
+        "populate_by_name": True
+    }
 
 
 class AnalysisHistoryResponse(BaseModel):

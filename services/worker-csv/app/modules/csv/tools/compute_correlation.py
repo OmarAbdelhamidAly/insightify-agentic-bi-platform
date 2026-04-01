@@ -21,6 +21,9 @@ class CorrelationInput(BaseModel):
     method: Literal["pearson", "spearman"] = Field(
         "pearson", description="Correlation method"
     )
+    date_column: Optional[str] = Field(
+        None, description="Optional date column to include in returned data for time-series charts"
+    )
 
 
 @tool("compute_correlation", args_schema=CorrelationInput)
@@ -28,6 +31,7 @@ def compute_correlation(
     file_path: str,
     columns: Optional[List[str]] = None,
     method: str = "pearson",
+    date_column: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Compute a correlation matrix for numeric columns."""
     df = pd.read_csv(file_path)
@@ -57,11 +61,22 @@ def compute_correlation(
                     "strength": "strong" if abs(val) > 0.7 else "moderate",
                 })
 
+    # Build the set of columns to include in the returned data sample
+    # If a date_column is provided and exists in the DataFrame, include it
+    # so the visualization_agent can render a time-series correlation chart.
+    data_cols = list(numeric_df.columns)
+    if date_column and date_column in df.columns:
+        data_cols = [date_column] + data_cols
+
+    # Include raw data for visualization (limit to first 500 rows to keep it lightweight)
+    res_data = df[data_cols].head(500).to_dict(orient="records")
+
     return {
         "method": method,
         "matrix": corr_matrix.round(4).to_dict(),
-        "columns": list(corr_matrix.columns),
+        "columns": list(corr_matrix.columns) if not date_column else data_cols,
         "strong_correlations": sorted(
             strong_pairs, key=lambda x: abs(x["correlation"]), reverse=True
         ),
+        "data": res_data,
     }

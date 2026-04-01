@@ -50,7 +50,7 @@ export default function TeamManagementView() {
     try {
       setLoading(true);
       await UserAPI.invite(inviteEmail, inviteRole, invitePassword, inviteGroupId || undefined);
-      alert("Invitation sent successfully!");
+      alert("User account created! They can now log in immediately.");
       setIsInviteOpen(false);
       fetchTeam();
     } catch (e) {
@@ -141,7 +141,7 @@ export default function TeamManagementView() {
               onClick={() => setIsInviteOpen(true)}
               className="bg-[var(--primary)] hover:bg-[var(--primary-glow)] text-white px-6 py-3 rounded-2xl text-sm font-bold shadow-xl shadow-[var(--primary)]/20 transition-all flex items-center gap-2 group"
             >
-              <UserPlus className="w-4 h-4 group-hover:scale-110 transition-transform" /> Invite Member
+              <UserPlus className="w-4 h-4 group-hover:scale-110 transition-transform" /> Create User
             </button>
           </div>
         </div>
@@ -304,7 +304,7 @@ export default function TeamManagementView() {
       {isInviteOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
           <div className="bg-slate-900 border border-slate-800 rounded-[32px] w-full max-w-md p-8 shadow-2xl relative">
-            <h2 className="text-2xl font-black text-white mb-6">Invite Principal</h2>
+            <h2 className="text-2xl font-black text-white mb-6">Create New Principal</h2>
             <form onSubmit={handleInvite} className="space-y-4">
               <div>
                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Email Address</label>
@@ -346,7 +346,7 @@ export default function TeamManagementView() {
               </div>
               <div className="flex gap-4 pt-4">
                 <button type="button" onClick={() => setIsInviteOpen(false)} className="flex-1 px-6 py-3 rounded-2xl text-xs font-bold text-slate-400 hover:text-white transition-all">Cancel</button>
-                <button type="submit" className="flex-1 bg-[var(--primary)] text-white px-6 py-3 rounded-2xl text-xs font-bold shadow-lg shadow-[var(--primary)]/20">Send Protocol</button>
+                <button type="submit" className="flex-1 bg-[var(--primary)] text-white px-6 py-3 rounded-2xl text-xs font-bold shadow-lg shadow-[var(--primary)]/20">Activate Account</button>
               </div>
             </form>
           </div>

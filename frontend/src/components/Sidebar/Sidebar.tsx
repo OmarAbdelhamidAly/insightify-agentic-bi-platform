@@ -12,13 +12,9 @@ import {
   Box,
   ShieldCheck,
   Users,
-  Brain,
-  Layout,
-  LogOut,
   Mic,
-  Activity,
-  Loader2,
-  Sparkles
+  LogOut,
+  Loader2
 } from 'lucide-react';
 import { VoiceAPI } from '../../services/api';
 import { recorder } from '../../utils/audio';
@@ -149,10 +145,10 @@ export default function Sidebar({
       <div className="p-6 pb-2">
         <div className="flex items-center gap-3 mb-6 px-1">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/30" style={{ background: 'linear-gradient(135deg, #06B6D4, #6366F1)' }}>
-            <span className="text-white font-black text-base leading-none" style={{ fontFamily: 'Inter, sans-serif' }}>Q</span>
+            <span className="text-white font-black text-base leading-none" style={{ fontFamily: 'Inter, sans-serif' }}>I</span>
           </div>
           <span className="font-black text-white" style={{ fontSize: '1rem', letterSpacing: '0.05em' }}>
-            Open<span style={{ background: 'linear-gradient(135deg, #06B6D4, #6366F1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Q</span>
+            Insight<span style={{ background: 'linear-gradient(135deg, #06B6D4, #6366F1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>ify</span>
           </span>
         </div>
 
@@ -177,8 +173,7 @@ export default function Sidebar({
       <div className="flex-1 overflow-y-auto px-4 py-2 custom-scroll">
         <SectionHeader>Master Hub</SectionHeader>
         <div className="space-y-1">
-          <NavItem id="dashboard" icon={Sparkles} label="Sovereign Intelligence" color="text-amber-400" />
-          <NavItem id="neural-feed" icon={Activity} label="Neural Feed" color="text-indigo-400" />
+          <NavItem id="about" icon={ShieldCheck} label="Insightify Team (About)" color="text-cyan-400" />
         </div>
 
         <SectionHeader>Service Portals</SectionHeader>
@@ -191,15 +186,10 @@ export default function Sidebar({
 
         <SectionHeader>Governance</SectionHeader>
         <div className="space-y-1">
-          <NavItem id="governance" icon={ShieldCheck} label="Safety Protocols" />
-          <NavItem id="knowledge" icon={Brain} label="Intelligence Hub" color="text-indigo-400" />
+          <NavItem id="sentinel" icon={ShieldCheck} label="Insightify Sentinel" color="text-emerald-400" />
           <NavItem id="team" icon={Users} label="Team Management" />
         </div>
 
-        <SectionHeader>System</SectionHeader>
-        <div className="space-y-1">
-          <NavItem id="system" icon={Layout} label="Tech Architecture" color="text-blue-400" />
-        </div>
 
         {/* Dynamic Connections Section */}
         <div className="mt-8">

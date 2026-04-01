@@ -101,9 +101,13 @@ def build_pdf_graph(checkpointer: Any = None, mode: str = "deep_vision") -> Any:
         }
     )
     
+    graph.add_edge("vision_synthesis", "verifier")
+    graph.add_edge("text_synthesis", "verifier")
+    graph.add_edge("ocr_synthesis", "verifier")
+    
     graph.add_edge("chat", "output_assembler")
     graph.add_edge("analyst", "output_assembler")
     graph.add_edge("output_assembler", END)
 
-    # Compile with HITL interrupt point after retrieval to show retrieved pages
-    return graph.compile(checkpointer=checkpointer, interrupt_after=["retrieval"])
+    # Compile the graph without interrupt to allow full deep vision RAG analysis
+    return graph.compile(checkpointer=checkpointer)

@@ -23,6 +23,12 @@ class AnalysisResult(Base):
     chart_json: Mapped[Optional[Dict[str, Any]]] = mapped_column(
         JSON, nullable=True
     )  # Plotly figure JSON
+    chart_engine: Mapped[Optional[str]] = mapped_column(
+        Text, nullable=True, default="echarts"
+    )  # "echarts" | "plotly"
+    viz_rationale: Mapped[Optional[str]] = mapped_column(
+        Text, nullable=True
+    )  # Decision logic for selected chart type
     insight_report: Mapped[Optional[str]] = mapped_column(
         Text, nullable=True
     )  # Full written analysis

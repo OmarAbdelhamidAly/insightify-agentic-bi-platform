@@ -40,6 +40,8 @@ async def _execute_pillar(job_id: str) -> dict:
     from app.models.analysis_job import AnalysisJob
     from app.models.analysis_result import AnalysisResult
     from app.models.data_source import DataSource
+    from app.models.metric import BusinessMetric
+    from app.models.policy import SystemPolicy
     from app.modules.pdf.workflow import build_pdf_graph
 
     # Instantiate fresh checkpointer for the current loop
@@ -67,7 +69,7 @@ async def _execute_pillar(job_id: str) -> dict:
             if source and source.schema_json:
                 analysis_mode = source.schema_json.get("indexing_mode", "deep_vision")
             
-            thread_id = str(job.id)
+            thread_id = f"{job.id}_{source.type}"
             config = {"configurable": {"thread_id": thread_id}}
             
             pipeline = build_pdf_graph(checkpointer=checkpointer, mode=analysis_mode)
@@ -84,6 +86,12 @@ async def _execute_pillar(job_id: str) -> dict:
             except:
                 pass
 
+            m_result = await db.execute(select(BusinessMetric).where(BusinessMetric.tenant_id == job.tenant_id))
+            metrics = [{"name": m.name, "definition": m.definition, "formula": m.formula or "N/A"} for m in m_result.scalars().all()]
+            
+            p_result = await db.execute(select(SystemPolicy).where(SystemPolicy.tenant_id == job.tenant_id))
+            policies = [{"name": p.name, "type": p.rule_type, "description": p.description} for p in p_result.scalars().all()]
+
             graph_input = {
                 "tenant_id": str(job.tenant_id),
                 "user_id": str(job.user_id),
@@ -91,8 +99,13 @@ async def _execute_pillar(job_id: str) -> dict:
                 "history": parsed_history,
                 "source_id": str(job.source_id),
                 "source_type": source.type if source else "pdf",
+                "file_path": source.file_path if source else None,
                 "kb_id": str(job.kb_id) if job.kb_id else None,
                 "analysis_mode": analysis_mode,
+                "config_encrypted": source.config_encrypted if source else None,
+                "schema_summary": source.schema_json or {} if source else {},
+                "business_metrics": metrics,
+                "system_policies": policies,
             }
 
             logger.info("pdf_graph_execution_started", job_id=job_id)
@@ -150,7 +163,9 @@ async def _execute_pillar(job_id: str) -> dict:
             await db.execute(stmt)
             
             # ── Master Strategist: Handoff Logic ─────────────────────────
-            current_report = res_data.get("insight_report") or res_data.get("executive_summary") or "Analysis complete."
+            # Use the succinct executive summary rather than the full insight report
+            # to prevent UI duplication in single-pillar queries.
+            current_report = res_data.get("executive_summary") or res_data.get("insight_report") or "Analysis complete."
             pillar_name = source.type.upper() if source else "PDF"
             
             # Enrich the unified synthesis report

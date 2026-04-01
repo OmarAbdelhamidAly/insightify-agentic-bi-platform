@@ -24,8 +24,9 @@ async def query_refiner_agent(state: AnalysisState) -> Dict[str, Any]:
     
     RULES:
     1. If the question refers to "it", "this", or "previous", use the chat history to resolve the reference.
-    2. Maintain the same language as the user (Arabic or English).
-    3. Output ONLY the refined question. NO conversational filler.
+    2. STRICT RULE: Maintain the ORIGINAL language of the current USER QUESTION. Do NOT translate the question.
+    3. Keep domain-specific terms and proper nouns exactly as they are.
+    4. Output ONLY the refined question. NO conversational filler.
     
     CHAT HISTORY:
     {history_context}

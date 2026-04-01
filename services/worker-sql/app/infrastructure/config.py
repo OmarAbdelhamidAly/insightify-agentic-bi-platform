@@ -45,7 +45,9 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     LLM_MODEL: str = "gemini-flash-latest"  # Use Gemini Flash as primary for reliability
 
-
+    # ── Qdrant (Semantic Cache) ────────────────────────────────
+    QDRANT_URL: str = "http://localhost:6333"
+    QDRANT_API_KEY: str = ""
 
 
 

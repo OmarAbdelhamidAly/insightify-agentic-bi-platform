@@ -231,10 +231,13 @@ def _dispatch_csv_tool(data_path: str, operation: str, plan: Dict[str, Any]) -> 
         cols = plan.get("columns") or plan.get("group_by") or None
         if isinstance(cols, str):
             cols = [cols]
+        # Pass date_column so the returned data can be used for time-series correlation charts
+        date_col = plan.get("date_column") or None
         return compute_correlation.invoke({
             "file_path": data_path,
             "columns": cols,
             "method": "pearson",
+            "date_column": date_col,
         })
 
     elif operation == "ranking":

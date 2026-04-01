@@ -119,7 +119,7 @@ export interface AnalysisJob {
   required_pillars?: string[];
   complexity_index?: number;
   total_pills?: number;
-  recommendations_json?: any[];
+  recommendations_json?: any[] | string | any;
   follow_up_suggestions?: string[];
   visual_context?: Array<{ page_number: number, image_base64: string }>;
   structured_data?: any;

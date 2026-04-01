@@ -35,8 +35,8 @@ def get_llm(temperature: float = 0, model: str | None = None) -> BaseChatModel:
             max_tokens=2048,
             max_retries=1,
             default_headers={
-                "HTTP-Referer": "https://github.com/OmarAbdelhamidAly/NTI-grad-project",
-                "X-Title": "NTI Graduate Project AI Analyst"
+                "HTTP-Referer": "https://insightify.ai",
+                "X-Title": "Insightify Business Intelligence Assistant"
             },
         )
 

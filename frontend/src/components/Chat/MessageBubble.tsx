@@ -80,8 +80,8 @@ export default function MessageBubble({ message, onApproveSuccess }: Props) {
       {/* Bubble */}
       <div className={`${isUser ? 'max-w-[85%]' : 'max-w-[95%]'} rounded-[24px] p-6 backdrop-blur-3xl shadow-2xl relative ${
         isUser
-          ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-white rounded-tr-sm self-end'
-          : 'bg-[#0a0d17]/80 border border-slate-800/50 text-slate-200 rounded-tl-sm self-start w-full'
+          ? 'bg-gradient-to-br from-indigo-600/20 via-purple-600/20 to-pink-600/20 border border-indigo-500/40 text-white rounded-tr-sm self-end shadow-[0_0_20px_rgba(99,102,241,0.15)]'
+          : 'bg-gradient-to-br from-white/[0.03] to-transparent backdrop-blur-3xl border border-white/10 text-slate-200 rounded-tl-sm self-start w-full shadow-[0_20px_50px_rgba(0,0,0,0.3)]'
       }`}>
         {isUser ? (
           <p className="text-base leading-relaxed break-words">{message.content}</p>
@@ -155,8 +155,8 @@ export default function MessageBubble({ message, onApproveSuccess }: Props) {
                 {message.job.insight_report && (
                   <div className="relative">
                     <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-800/70">
-                      <div className="w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_6px_#38bdf8]" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">Insight Report</span>
+                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_10px_#22d3ee]" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-400">Insight Report</span>
                       <button
                         onClick={toggleSpeech}
                         title={isSpeaking ? 'Stop Reading' : 'Read Aloud'}
@@ -172,33 +172,41 @@ export default function MessageBubble({ message, onApproveSuccess }: Props) {
                 )}
 
                 {/* Strategic Recommendations */}
-                {message.job.recommendations_json && message.job.recommendations_json.length > 0 && (
+                {message.job.recommendations_json && (
+                  Array.isArray(message.job.recommendations_json) ? message.job.recommendations_json.length > 0 : typeof message.job.recommendations_json === 'string' && message.job.recommendations_json.trim().length > 0
+                ) && (
                   <div className="border border-emerald-500/20 bg-emerald-500/5 rounded-2xl overflow-hidden">
                     <div className="px-4 py-3 bg-emerald-500/10 flex items-center gap-2 border-b border-emerald-500/20">
-                      <Lightbulb className="w-4 h-4 text-emerald-400" />
+                      <Lightbulb className="w-4 h-4 text-emerald-400 animate-pulse" />
                       <h4 className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.18em]">Strategic Recommendations</h4>
                     </div>
                     <div className="p-4 flex flex-col gap-3">
-                      {message.job.recommendations_json.map((rec: any, i: number) => (
-                        <div key={i} className="flex gap-3 items-start p-3 rounded-xl bg-white/[0.03] border border-white/5 hover:border-emerald-500/20 transition-all">
-                          <div className="shrink-0 w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-[10px] font-black text-emerald-400">{i + 1}</div>
-                          <div className="flex-1 min-w-0">
-                            {typeof rec === 'string' ? (
-                              <p className="text-sm text-slate-300 leading-relaxed">{rec}</p>
-                            ) : (
-                              <>
-                                {rec.title && <p className="text-sm font-bold text-white mb-1">{rec.title}</p>}
-                                {rec.description && <p className="text-sm text-slate-400 leading-relaxed">{rec.description}</p>}
-                                {rec.action && (
-                                  <p className="text-xs text-emerald-400 mt-1.5 flex items-center gap-1">
-                                    <ChevronRight className="w-3 h-3" />{rec.action}
-                                  </p>
-                                )}
-                              </>
-                            )}
+                      {Array.isArray(message.job.recommendations_json) ? (
+                        message.job.recommendations_json.map((rec: any, i: number) => (
+                          <div key={i} className="flex gap-3 items-start p-3 rounded-xl bg-white/[0.03] border border-white/5 hover:border-emerald-500/20 transition-all">
+                            <div className="shrink-0 w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-[10px] font-black text-emerald-400">{i + 1}</div>
+                            <div className="flex-1 min-w-0">
+                              {typeof rec === 'string' ? (
+                                <p className="text-sm text-slate-300 leading-relaxed">{rec}</p>
+                              ) : (
+                                <>
+                                  {rec.title && <p className="text-sm font-bold text-white mb-1">{rec.title}</p>}
+                                  {rec.description && <p className="text-sm text-slate-400 leading-relaxed">{rec.description}</p>}
+                                  {rec.action && (
+                                    <p className="text-xs text-emerald-400 mt-1.5 flex items-center gap-1">
+                                      <ChevronRight className="w-3 h-3" />{rec.action}
+                                    </p>
+                                  )}
+                                </>
+                              )}
+                            </div>
                           </div>
+                        ))
+                      ) : (
+                        <div className="prose prose-invert prose-emerald max-w-none prose-sm prose-p:leading-relaxed prose-p:text-slate-300">
+                          <MarkdownBlock content={message.job.recommendations_json as string} />
                         </div>
-                      ))}
+                      )}
                     </div>
                   </div>
                 )}

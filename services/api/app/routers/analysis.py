@@ -127,6 +127,21 @@ async def submit_query(
     # Remove duplicates but keep order if same type consecutive? 
     # Actually, keep it simple: one pillar per source select.
     
+    # ── Auto-Knowledge-Mapping ──────────────────────────────────────
+    # If multiple sources are selected and the primary is SQL/CSV, 
+    # we auto-assign the first PDF found in multi-sources as the kb_id.
+    effective_kb_id = body.kb_id
+    if not effective_kb_id and body.multi_source_ids:
+        multi_data = await db.execute(
+            select(DataSource.id, DataSource.type)
+            .where(DataSource.id.in_(body.multi_source_ids))
+        )
+        for row in multi_data:
+            if row.type == "pdf":
+                effective_kb_id = str(row.id)
+                logger.info("auto_knowledge_mapping_active", primary_source=str(body.source_id), kb_id=effective_kb_id)
+                break
+
     job = AnalysisJob(
         id=uuid.uuid4(),
         tenant_id=current_user.tenant_id,
@@ -134,7 +149,7 @@ async def submit_query(
         source_id=body.source_id,
         multi_source_ids=body.multi_source_ids,
         question=actual_question,
-        kb_id=body.kb_id,
+        kb_id=effective_kb_id,
         status="pending",
         thinking_steps=[],
         complexity_index=1,

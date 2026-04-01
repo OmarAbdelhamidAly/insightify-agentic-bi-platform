@@ -105,3 +105,5 @@ class AnalysisState(TypedDict, total=False):
     route: str                  # "greeting" | "query"
     reflection_needed: bool
     verified: bool
+    search_results: Any         # The raw Qdrant search results
+    page_nums: List[int]

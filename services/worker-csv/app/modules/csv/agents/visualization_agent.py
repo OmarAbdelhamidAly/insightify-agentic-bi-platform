@@ -44,7 +44,8 @@ _TRANSPARENT = "rgba(0,0,0,0)"
 # ── Chart-type registry ───────────────────────────────────────────────────────
 _CHART_RULES: list[tuple[str, str]] = [
     ("indicator",  "Single numeric KPI — number indicator is clearest"),
-    ("scatter",    "Time-series or date x-axis — line chart shows trend"),
+    ("line",       "Time-series or date x-axis — line chart shows trend"),
+    ("multi_line", "Multiple metrics over time — dual-axis or multi-trace line chart"),
     ("pie",        "Part-to-whole with 2–7 categories — donut shows proportion"),
     ("treemap",    "Part-to-whole with 8+ categories — treemap avoids label clutter"),
     ("dot_plot",   "Narrow numeric range — dot plot avoids exaggerating differences"),
@@ -138,7 +139,7 @@ async def visualization_agent(state: AnalysisState) -> dict[str, Any]:
     LLM only for layout labels. Returns a fully-hydrated Plotly figure.
     """
     analysis = state.get("analysis_results") or {}
-    raw_data: list = analysis.get("data") or analysis.get("dataframe") or []
+    raw_data: list = analysis.get("data") or analysis.get("forecast") or analysis.get("dataframe") or []
     columns:  list = analysis.get("columns") or []
 
     if not raw_data or not columns:
@@ -341,8 +342,11 @@ def _select_chart_type(
     if intent == "kpi" and len(numeric_cols) >= 1 and row_count == 1:
         return "indicator", "Strategic KPI — Single-metric focus"
 
+    # ── Time-series / Trends ──────────────────────────────────────────────────
     if temporal_cols and numeric_cols:
-        return "scatter", f"Time-series trend detected via '{temporal_cols[0]}'"
+        if len(numeric_cols) > 1 or intent == "correlation":
+            return "multi_line", f"Multiple trends detected via '{temporal_cols[0]}'"
+        return "line", f"Time-series trend detected via '{temporal_cols[0]}'"
 
     if intent in ("proportion", "composition"):
         cat_col  = cat_cols[0] if cat_cols else None
@@ -450,14 +454,48 @@ def _build_figure(
             "layout": {"title": {"text": ""}},
         }
 
-    if chart_type == "scatter":
+    if chart_type in ("line", "multi_line", "scatter"):
         x_col  = temporal_cols[0] if temporal_cols else (cat_cols[0] if cat_cols else columns[0])
-        y_col  = numeric_cols[0]  if numeric_cols  else columns[-1]
-        pairs  = [(str(r.get(x_col, "")), _coerce_float(r.get(y_col))) for r in rows]
-        x_vals, y_vals = zip(*pairs) if pairs else ([], [])
+        # For multi-line, use all numeric columns. For scatter/line, use the primary one.
+        if not numeric_cols:
+            # No numeric cols detected — fall back to table to avoid IndexError
+            return _build_fallback_table({"columns": columns, "data": raw_data})
+        target_y_cols = numeric_cols if chart_type == "multi_line" else [numeric_cols[0]]
+        
+        traces = []
+        for i, y_col in enumerate(target_y_cols):
+            pairs  = [(str(r.get(x_col, "")), _coerce_float(r.get(y_col))) for r in rows]
+            x_vals, y_vals = zip(*pairs) if pairs else ([], [])
+            
+            mode = "lines+markers" if (temporal_cols or chart_type in ("line", "multi_line")) else "markers"
+            trace = {
+                "type": "scatter",
+                "mode": mode,
+                "x": list(x_vals),
+                "y": list(y_vals),
+                "name": y_col,
+                "marker": {"size": 8} if mode == "markers" else {"size": 6}
+            }
+            
+            # Dual-Axis logic: If it's a correlation intent and we have 2 columns with vastly different scales
+            if chart_type == "multi_line" and len(target_y_cols) == 2 and i == 1:
+                # Check scales
+                v1_max = profile.get("numeric_range", {}).get(target_y_cols[0], {}).get("max", 1)
+                v2_max = profile.get("numeric_range", {}).get(target_y_cols[1], {}).get("max", 1)
+                if v1_max > 0 and v2_max > 0 and (v1_max / v2_max > 10 or v2_max / v1_max > 10):
+                    trace["yaxis"] = "y2"
+                    layout["yaxis2"] = {
+                        "title": {"text": y_col},
+                        "overlaying": "y",
+                        "side": "right",
+                        "gridcolor": _TRANSPARENT, # avoid confusing dual grids
+                        "tickfont": {"color": _FONT_COLOR}
+                    }
+
+            traces.append(trace)
+
         return {
-            "data": [{"type": "scatter", "mode": "lines+markers" if temporal_cols else "markers",
-                      "x": list(x_vals), "y": list(y_vals), "name": y_col}],
+            "data": traces,
             "layout": layout,
         }
 

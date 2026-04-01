@@ -32,7 +32,7 @@ async def adaptive_retrieval_agent(state: AnalysisState) -> Dict[str, Any]:
     # 3. Search via Text Description (Deep Vision collection always has text)
     search_results = qdrant.search_text(
         query_vector=query_vector,
-        limit=5
+        limit=20
     )
     
     # 4. Reflection: If no results found, flag for retry

@@ -44,7 +44,8 @@ _TRANSPARENT = "rgba(0,0,0,0)"
 # ── Chart-type registry ───────────────────────────────────────────────────────
 _CHART_RULES: list[tuple[str, str]] = [
     ("indicator",  "Single numeric KPI — number indicator is clearest"),
-    ("scatter",    "Time-series or date x-axis — line chart shows trend"),
+    ("line",       "Time-series or date x-axis — line chart shows trend"),
+    ("multi_line", "Multiple metrics over time — dual-axis or multi-trace line chart"),
     ("pie",        "Part-to-whole with 2–7 categories — donut shows proportion"),
     ("treemap",    "Part-to-whole with 8+ categories — treemap avoids label clutter"),
     ("dot_plot",   "Narrow numeric range — dot plot avoids exaggerating differences"),
@@ -377,7 +378,9 @@ def _select_chart_type(
 
     # ── Time-series ───────────────────────────────────────────────────────────
     if temporal_cols and numeric_cols:
-        return "scatter", (
+        if len(numeric_cols) > 1 or intent == "correlation":
+            return "multi_line", f"Multiple trends via '{temporal_cols[0]}'"
+        return "line", (
             f"Temporal column '{temporal_cols[0]}' + numeric '{numeric_cols[0]}' → line chart"
         )
 
@@ -549,16 +552,43 @@ def _build_figure(
             "layout": {**layout, "bargap": 0.05},
         }
 
-    # ── Line / Scatter ────────────────────────────────────────────────────────
-    if chart_type == "scatter":
+    # ── Line / Multi-Line / Scatter ───────────────────────────────────────────
+    if chart_type in ("line", "multi_line", "scatter"):
         x_col  = temporal_cols[0] if temporal_cols else (cat_cols[0] if cat_cols else columns[0])
-        y_col  = numeric_cols[0]  if numeric_cols  else columns[-1]
-        x_vals = [str(r.get(x_col, "")) for r in rows]
-        y_vals = [_coerce_float(r.get(y_col)) for r in rows]
-        mode   = "lines+markers" if temporal_cols else "markers"
+        # For multi-line, use all numeric columns. For scatter/line, use the primary one.
+        target_y_cols = numeric_cols if chart_type == "multi_line" else ([numeric_cols[0]] if numeric_cols else [columns[-1]])
+        
+        traces = []
+        for i, y_col in enumerate(target_y_cols):
+            x_vals = [str(r.get(x_col, "")) for r in rows]
+            y_vals = [_coerce_float(r.get(y_col)) for r in rows]
+            
+            mode = "lines+markers" if (temporal_cols or chart_type in ("line", "multi_line")) else "markers"
+            trace = {
+                "type": "scatter",
+                "mode": mode,
+                "x": x_vals, "y": y_vals, "name": y_col,
+                "marker": {"size": 8} if mode == "markers" else {"size": 6}
+            }
+            
+            # Dual-Axis logic
+            if chart_type == "multi_line" and len(target_y_cols) == 2 and i == 1:
+                v1_max = profile.get("numeric_range", {}).get(target_y_cols[0], {}).get("max", 1)
+                v2_max = profile.get("numeric_range", {}).get(target_y_cols[1], {}).get("max", 1)
+                if v1_max > 0 and v2_max > 0 and (v1_max / v2_max > 10 or v2_max / v1_max > 10):
+                    trace["yaxis"] = "y2"
+                    layout["yaxis2"] = {
+                        "title": {"text": y_col},
+                        "overlaying": "y",
+                        "side": "right",
+                        "gridcolor": _TRANSPARENT,
+                        "tickfont": {"color": _FONT_COLOR}
+                    }
+            
+            traces.append(trace)
+
         return {
-            "data": [{"type": "scatter", "mode": mode,
-                      "x": x_vals, "y": y_vals, "name": y_col}],
+            "data": traces,
             "layout": layout,
         }
 

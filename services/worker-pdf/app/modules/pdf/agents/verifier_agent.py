@@ -1,7 +1,7 @@
 import structlog
 from typing import Dict, Any
 from app.infrastructure.llm import get_llm
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage
 from app.domain.analysis.entities import AnalysisState
 
 logger = structlog.get_logger(__name__)
@@ -11,6 +11,7 @@ async def verifier_agent(state: AnalysisState) -> Dict[str, Any]:
     report = state.get("insight_report")
     search_results = state.get("search_results", [])
     question = state.get("question")
+    current_retry = state.get("retry_count", 0)
     
     if not report or not search_results:
         return {"verified": True} # Cannot verify, skipping
@@ -20,27 +21,27 @@ async def verifier_agent(state: AnalysisState) -> Dict[str, Any]:
     # We use Groq's fast Llama 3.1 8B for verification
     llm = get_llm(temperature=0, model="llama-3.1-8b-instant")
     
-    # Combine descriptions from all retrieved pages
-    descriptions = ""
+    # Combine real texts or descriptions from all retrieved pages
+    context = ""
     for hit in search_results:
         p = hit.payload.get("page_num")
-        desc = hit.payload.get("description", "No description available.")
-        descriptions += f"## PAGE {p}:\n{desc}\n\n"
+        content = hit.payload.get("text") or hit.payload.get("description") or "No content available."
+        context += f"## PAGE {p}:\n{content}\n\n"
 
-    prompt = f"""You are a Fact-Checker for a PDF analysis system. 
-    Compare the generated AI ANSWER against the DOCUMENT PAGE DESCRIPTIONS.
+    prompt = f"""You are a Fact-Checker for a document analysis system. 
+    Compare the generated AI ANSWER against the RETRIEVED TEXT CONTEXT.
     
-    If the AI ANSWER contains statements that are NOT supported by the descriptions OR are plain wrong, flag them.
+    If the AI ANSWER contains statements that are computationally or factually NOT supported by the context OR are explicitly wrong, flag them.
     
-    DOCUMENT PAGE DESCRIPTIONS:
-    {descriptions}
+    RETRIEVED TEXT CONTEXT:
+    {context}
     
     AI ANSWER:
     {report}
     
     Your Task:
-    1. If the answer is accurate, output 'VERIFIED'.
-    2. If there are errors, output a detailed correction hint for the model.
+    1. If the answer is accurate and supported, output 'VERIFIED'.
+    2. If there are hallucinated errors, output a detailed correction hint.
     
     Output ONLY 'VERIFIED' or the correction hint."""
     
@@ -48,12 +49,16 @@ async def verifier_agent(state: AnalysisState) -> Dict[str, Any]:
         res = await llm.ainvoke([HumanMessage(content=prompt)])
         verification_res = res.content.strip()
         
-        if "VERIFIED" in verification_res.upper():
-            logger.info("visual_verification_passed")
-            return {"verified": True, "verification_hint": None}
+        if "VERIFIED" in verification_res.upper() or current_retry >= 2:
+            logger.info("visual_verification_passed_or_max_retries")
+            return {"verified": True, "verification_hint": None, "retry_count": current_retry}
         else:
             logger.warning("visual_verification_failed", hint=verification_res)
-            return {"verified": False, "verification_hint": verification_res}
+            return {
+                "verified": False, 
+                "verification_hint": verification_res,
+                "retry_count": current_retry + 1
+            }
             
     except Exception as e:
         logger.error("visual_verification_failed", error=str(e))

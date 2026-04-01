@@ -15,6 +15,8 @@ async def output_assembler(state: AnalysisState) -> Dict[str, Any]:
     """
     return {
         "chart_json": state.get("chart_json"),
+        "viz_rationale": state.get("viz_rationale"),
+        "chart_engine": state.get("chart_engine"),
         "insight_report": state.get("insight_report", ""),
         "executive_summary": state.get("executive_summary", ""),
         "recommendations": state.get("recommendations", []),

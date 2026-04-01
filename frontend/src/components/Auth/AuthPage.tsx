@@ -3,7 +3,7 @@ import { Mail, Lock, Building, ArrowRight, Loader2, ShieldCheck } from 'lucide-r
 import { useAuth0 } from '@auth0/auth0-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthAPI } from '../../services/api';
-import openqLogo from '../../assets/openq-logo.png';
+import insightifyLogo from '../../assets/insightify-logo.png';
 
 interface AuthPageProps {
   onLogin: (token: string, refreshToken: string, user: any) => void;
@@ -66,7 +66,7 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
       >
         <div className="text-center mb-10">
           <div className="flex justify-center mb-6">
-            <img src={openqLogo} alt="OpenQ.AI Logo" className="h-28 object-contain rounded-[32px] mix-blend-screen shadow-2xl shadow-indigo-500/20" />
+            <img src={insightifyLogo} alt="Insightify Logo" className="h-28 object-contain rounded-[32px] mix-blend-screen shadow-2xl shadow-indigo-500/20" />
           </div>
           <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-indigo-200 tracking-tight mb-3">
             {isLogin ? "Welcome Back" : "Create Account"}

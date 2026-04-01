@@ -13,7 +13,7 @@ async def get_kb_context(kb_id: Optional[str], query: str, limit: int = 3) -> st
     try:
         collection_name = f"kb_{str(kb_id).replace('-', '')}"
         client = QdrantClient(url=os.getenv("QDRANT_URL", "http://localhost:6333"))
-        client.set_model("BAAI/bge-small-en-v1.5")
+        client.set_model("nomic-ai/nomic-embed-text-v1.5")
         
         results = client.query(
             collection_name=collection_name,
@@ -26,7 +26,8 @@ async def get_kb_context(kb_id: Optional[str], query: str, limit: int = 3) -> st
             
         context_parts = []
         for res in results:
-            context_parts.append(f"--- Context (Source: {res.metadata.get('name', 'Unknown')}) ---\n{res.document}")
+            doc_info = f"Page {res.metadata.get('page_num', '?')}"
+            context_parts.append(f"--- Context (Source: {doc_info}) ---\n{res.metadata.get('description', '')}")
             
         return "\n\n".join(context_parts)
     except Exception as e:

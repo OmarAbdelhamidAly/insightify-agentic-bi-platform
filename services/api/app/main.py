@@ -144,8 +144,8 @@ def create_app() -> FastAPI:
     """Factory function to create and configure the FastAPI application."""
     _is_prod = settings.ENV == "production"
     app = FastAPI(
-        title="Autonomous Data Analyst Agent",
-        description="Multi-tenant SaaS platform for AI-powered data analysis.",
+        title="Insightify Business Intelligence Assistant",
+        description="Next-generation SaaS platform for autonomous data synthesis and intelligence (Amazon Q-like).",
         version="1.0.0",
         lifespan=lifespan,
         # Hide API docs in production to reduce attack surface

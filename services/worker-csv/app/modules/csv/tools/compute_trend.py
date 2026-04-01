@@ -85,6 +85,8 @@ def compute_trend(
             "max_value": float(np.max(values)),
             "data_points": len(values),
             "anomalies": anomalies,
+            "data": data.to_dict(orient="records"),
+            "columns": [date_column, value_column],
         }
 
     if group_by and group_by in df.columns:
