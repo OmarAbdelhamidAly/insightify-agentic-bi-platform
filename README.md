@@ -1,18 +1,19 @@
 <div align="center">
 
-# 🤖 DataAnalyst.AI
+# 🤖 Insightify
 
 **Autonomous Enterprise Data Analyst — Multi-Tenant SaaS Platform**
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-FF6B35)](https://langchain-ai.github.io/langgraph/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-Cyclic%20StateGraph-FF6B35)](https://langchain-ai.github.io/langgraph/)
 [![Celery](https://img.shields.io/badge/Celery-5.4-37814A?logo=celery&logoColor=white)](https://docs.celeryq.dev)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://postgresql.org)
-[![Redis](https://img.shields.io/badge/Redis-Queue%20%2B%20Cache-DC382D?logo=redis&logoColor=white)](https://redis.io)
-[![Docker](https://img.shields.io/badge/Docker-Compose%20%2B%20K8s-2496ED?logo=docker&logoColor=white)](https://docker.com)
-[![Groq](https://img.shields.io/badge/Groq-Llama--3.1%2F3.3-F54034)](https://console.groq.com)
-[![Qdrant](https://img.shields.io/badge/Qdrant-ColPali%20RAG-4F46E5)](https://qdrant.tech)
+[![Redis](https://img.shields.io/badge/Redis-Broker%20%2B%20HITL%20Checkpoint-DC382D?logo=redis&logoColor=white)](https://redis.io)
+[![Docker](https://img.shields.io/badge/Docker-12%20Containers-2496ED?logo=docker&logoColor=white)](https://docker.com)
+[![Gemini](https://img.shields.io/badge/Gemini-2.0--Flash%20Vision-4285F4?logo=google-gemini&logoColor=white)](https://deepmind.google/technologies/gemini/)
+[![Qdrant](https://img.shields.io/badge/Qdrant-Vector%20RAG-4F46E5)](https://qdrant.tech)
+[![CleanArch](https://img.shields.io/badge/Architecture-Clean%20%2F%20Hexagonal-blueviolet)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 <br/>
@@ -29,7 +30,7 @@
 
 ## 🎯 What It Does
 
-**DataAnalyst.AI** is a production-grade, multi-tenant SaaS platform that transforms raw enterprise data into executive-quality insights through a fully autonomous multi-agent AI pipeline.
+**Insightify** is a production-grade, multi-tenant SaaS platform that transforms raw enterprise data into executive-quality insights through a fully autonomous multi-agent AI pipeline.
 
 A user connects a data source, types a natural-language question, and the system handles everything else — schema discovery, query generation, self-healing on failure, visualization, insight synthesis, and export — with **zero manual intervention**.
 
@@ -40,20 +41,22 @@ A user connects a data source, types a natural-language question, and the system
 | **CSV / XLSX / SQLite** | File upload | Auto-profiled on upload |
 | **PostgreSQL / MySQL** | Encrypted connection string | AES-256 credentials at rest |
 | **JSON** | File upload | Structured event or log data |
-| **PDF** | File upload | Unstructured documents via ColPali RAG |
+| **PDF** | File upload | Native Multimodal Analysis via Gemini 2.0 Flash |
 
 ### What Makes It Different
 
 | Feature | Description |
 |---|---|
-| 🔁 **Zero-Row Reflection** | If a SQL query returns 0 results, the agent detects the failure, analyzes data distribution, identifies case mismatches, and auto-rewrites the query (up to 3 retries) |
-| 👁️ **Human-in-the-Loop (HITL)** | SQL queries against live databases pause for admin approval before execution. State is checkpointed to Redis — survives worker restarts |
-| 🧬 **Hybrid Fusion** | SQL results are enriched with context retrieved from a linked PDF knowledge base (ColPali multi-vector Qdrant) |
-| 🛡️ **3-Layer Security Guardrails** | `EXPLAIN`-cost analysis + strict regex injection prevention + LLM-based semantic policy enforcement |
-| 🏢 **Multi-Tenant Isolation** | Every tenant's data, credentials, and jobs are fully isolated at the database query level (`tenant_id` scope on every operation) |
-| ⚡ **Auto-Analysis on Upload** | 5 pre-generated analyses are computed in the background the moment a data source is connected — users see instant insights on first open |
-| 🧠 **Insight Memory** | Successful SQL queries are saved as golden examples, improving future query generation through in-context learning |
-| 📊 **Reasoning Transparency** | Every LangGraph node output is captured in `thinking_steps` and surfaced in the UI — users see exactly what the agent was thinking |
+| 🔁 **Zero-Row Reflection** | If a SQL query returns 0 results, the agent detects the failure, analyzes case mismatches against `low_cardinality_values`, and auto-rewrites the query (up to 3 retries, no re-run from scratch) |
+| 👁️ **Human-in-the-Loop (HITL)** | SQL queries against live databases pause at `interrupt_after=["human_approval"]`. Full LangGraph state serialized to Redis via `AsyncRedisSaver` — survives worker restarts, pod evictions, cluster reboots |
+| 🧬 **Hybrid Fusion** | SQL results enriched with PDF context via **Gemini 2.0 Flash Multimodal** — pages rendered as images, semantically retrieved from Qdrant, synthesized into a unified insight |
+| 🛡️ **3-Layer SQL Guardrails** | Layer 1: SELECT-only allowlist · Layer 2: DML/DDL regex blocklist · Layer 3: LLM semantic policy enforcement (tenant-scoped, natural-language rules) |
+| 🏢 **Multi-Tenant Isolation** | Single DB, `tenant_id` scoped on every SQLAlchemy query. Enforced at the `get_current_user` dependency level — cannot be bypassed |
+| ⚡ **Auto-Analysis on Upload** | 5 pre-generated analyses computed in background on upload — users see instant insights on first open, zero wait |
+| 🧠 **Insight Memory** | Successful SQL queries saved as golden examples. Semantically retrieved as few-shot examples in future `analysis_generator` calls — improving accuracy over time |
+| 🏗️ **Clean Architecture** | Every microservice follows Hexagonal Architecture: `domain → use_cases → modules → infrastructure`. Swapping LLM providers or databases requires changes only in the outermost ring |
+| 📊 **Reasoning Transparency** | Every LangGraph node output captured in `thinking_steps` JSON and surfaced in the UI — full agent cognition audit trail per job |
+| 🔄 **Multi-Provider LLM Resilience** | `OpenRouter (Gemini 2.0 Flash) → Groq (Llama-3.3-70B) → Gemini Direct` fallback chain. LLM provider outages are transparent to all agents |
 
 ---
 
@@ -89,17 +92,22 @@ The platform is built as a **4-layer microservices stack** orchestrated by Docke
 │  LAYER 3      │ │  LAYER 3      │ │  LAYER 3      │ │  LAYER 3      │
 │  worker-sql   │ │  worker-csv   │ │  worker-json  │ │  worker-pdf   │
 │               │ │               │ │               │ │               │
-│ LangGraph SQL │ │ LangGraph CSV │ │ LangGraph     │ │ ColPali RAG   │
-│ Pipeline:     │ │ Pipeline:     │ │ JSON Pipeline │ │ Pipeline:     │
-│ discovery →   │ │ discovery →   │ │               │ │ ingest →      │
-│ generator →   │ │ [clean?] →    │ └───────────────┘ │ embed →       │
-│ [HITL pause]→ │ │ analysis →    │                   │ retrieve →    │
-│ execution →   │ │ visualization→│                   │ synthesize    │
-│ [reflect?] →  │ │ insight →     │                   └───────────────┘
-│ fusion →      │ │ recommendation│
-│ insight →     │ └───────────────┘
-│ verifier →    │
-│ recommendation│
+│ 12-node       │ │ 11-node       │ │ 10-node       │ │ 10-node       │
+│ Cyclic        │ │ Cyclic        │ │ Cyclic        │ │ Orchestrator  │
+│ StateGraph    │ │ StateGraph    │ │ StateGraph    │ │ StateGraph    │
+│               │ │               │ │               │ │               │
+│ discovery →   │ │ discovery →   │ │ discovery →   │ │ refine →      │
+│ generator →   │ │ [clean?] →    │ │ guardrail →   │ │ router →      │
+│ [HITL] →      │ │ guardrail →   │ │ analysis →    │ │ retrieval →   │
+│ execution →   │ │ analysis →    │ │ [reflect?] →  │ │ [vision/text/ │
+│ [reflect?] →  │ │ [reflect?] →  │ │ visualization │ │  ocr] synth → │
+│ hybrid_fusion→│ │ visualization→│ │ insight →     │ │ verifier →    │
+│ visualization │ │ insight →     │ │ verifier →    │ │ analyst →     │
+│ insight →     │ │ verifier →    │ │ recomm. →     │ │ assembler     │
+│ verifier →    │ │ recomm. →     │ │ save_cache    │ └───────────────┘
+│ recomm. →     │ │ assembler →   │ └───────────────┘
+│ save_cache →  │ │ save_cache    │
+│ assembler     │ └───────────────┘
 └───────────────┘
          │
          ▼
@@ -114,7 +122,7 @@ SHARED INFRASTRUCTURE
 PostgreSQL :5433  — Metadata: tenants, users, jobs, results, policies
 Redis :6379       — Celery broker + result backend + JWT token blacklist
                     + LangGraph HITL checkpoints (AsyncRedisSaver)
-Qdrant :6333      — Vector DB for PDF knowledge base (multi-vector ColPali)
+Qdrant :6333      — Vector DB for PDF knowledge base (multi-vector RAG)
 ```
 
 > **Full C4 diagrams** (Context → Container → Component) available in [`NTI_C4_DIAGRAMS.md`](NTI_C4_DIAGRAMS.md).
@@ -124,7 +132,7 @@ Qdrant :6333      — Vector DB for PDF knowledge base (multi-vector ColPali)
 ## 📂 Repository Structure
 
 ```
-NTI-grad-project/
+insightify/
 │
 ├── 📁 services/
 │   ├── api/                      # Layer 1: Public API Gateway
@@ -173,7 +181,7 @@ NTI-grad-project/
 │   │                             # compute_ranking · compute_trend · profile_dataframe
 │   │
 │   ├── worker-json/              # Layer 3: JSON analysis pipeline
-│   ├── worker-pdf/               # Layer 3: PDF RAG (ColPali multi-vector)
+│   ├── worker-pdf/               # Layer 3: PDF Multimodal analysis (Gemini 2.0 Flash)
 │   └── exporter/                 # Layer 4: Async PDF/XLSX/JSON export service
 │
 ├── 📁 frontend/                  # React + TypeScript SPA (Vite)
@@ -262,12 +270,12 @@ START → [intake] → check_intake → [guardrail] → END
 
 Four specialized Celery workers, each independently scalable:
 
-| Worker | Queue | Pipeline Nodes | Key Capabilities |
-|---|---|---|---|
-| `worker-sql` | `pillar.sql / pillar.sqlite / pillar.postgresql` | 11 | Schema discovery, HITL approval, zero-row reflection, hybrid PDF fusion, insight memory |
-| `worker-csv` | `pillar.csv` | 7 | Auto data cleaning, quality scoring, statistical analysis |
-| `worker-json` | `pillar.json` | 5 | Structured event/log analysis |
-| `worker-pdf` | `pillar.pdf` | 4 | ColPali multi-vector RAG (text + image patches) |
+| Worker | Queue | Pipeline Nodes | Graph Type | Key Capabilities |
+|---|---|---|---|---|
+| `worker-sql` | `pillar.sql / pillar.sqlite / pillar.postgresql` | **12** | Cyclic StateGraph | HITL approval, zero-row reflection, hybrid fusion, semantic cache, insight memory |
+| `worker-csv` | `pillar.csv` | **11** | Cyclic StateGraph | Conditional data cleaning, guardrail, self-healing reflection, verifier |
+| `worker-json` | `pillar.json` | **10** | Directed Cyclic StateGraph | MongoDB + Qdrant 768d RAG, semantic decomposition |
+| `worker-pdf` | `pillar.pdf` | **10** | Orchestrator StateGraph | Gemini 2.0 Flash Vision, triple synthesis engines, anti-hallucination loop |
 
 ---
 
@@ -500,8 +508,8 @@ policies
 
 ```bash
 # 1. Clone and configure
-git clone https://github.com/OmarAbdelhamidAly/NTI-grad-project.git
-cd NTI-grad-project
+git clone https://github.com/OmarAbdelhamidAly/insightify.git
+cd insightify
 cp .env.example .env
 # Edit .env — minimum required: GROQ_API_KEY, SECRET_KEY, AES_KEY
 
@@ -558,8 +566,8 @@ kubectl apply -f k8s/ingress.yaml
 ### Quick Start
 
 ```bash
-git clone https://github.com/OmarAbdelhamidAly/NTI-grad-project.git
-cd NTI-grad-project
+git clone https://github.com/OmarAbdelhamidAly/insightify.git
+cd insightify
 cp .env.example .env
 ```
 
@@ -616,19 +624,24 @@ pytest tests/ -v
 | Layer | Technology | Version |
 |---|---|---|
 | **API Framework** | FastAPI + Uvicorn | 0.115.6 / 0.34.0 |
-| **AI Orchestration** | LangGraph + LangChain | Latest |
-| **LLM Provider** | Groq (Llama-3.1-8B / 3.3-70B) | Latest |
-| **Task Queue** | Celery + Redis | 5.4.0 / 5.2.1 |
-| **Primary Database** | PostgreSQL + SQLAlchemy async | 16 / 2.0.36 |
-| **Vector Database** | Qdrant (multi-vector ColPali) | Latest |
-| **Authentication** | JWT (python-jose) + bcrypt | 3.3.0 / 4.2.1 |
+| **Architecture Pattern** | Clean (Hexagonal) Architecture | — |
+| **AI Orchestration** | LangGraph `StateGraph` (Cyclic) | Latest |
+| **LLM Primary** | OpenRouter → `google/gemini-2.0-flash-001` | Latest |
+| **LLM Fallback 1** | Groq → Llama-3.3-70B / 3.1-8B | Latest |
+| **LLM Fallback 2** | Gemini Direct API → `gemini-2.0-flash-exp` | Latest |
+| **PDF Vision** | Gemini 2.0 Flash Vision (Multimodal) | Latest |
+| **Task Queue** | Celery + Redis (`AsyncRedisSaver` for HITL) | 5.4.0 / 5.2.1 |
+| **Primary Database** | PostgreSQL 16 + SQLAlchemy async | 2.0.36 |
+| **Vector Database** | Qdrant (768d — JSON RAG + PDF embeddings) | Latest |
+| **Document Store** | MongoDB (JSON pipeline) | Latest |
+| **Authentication** | JWT (python-jose) + bcrypt + Redis JTI blacklist | 3.3.0 / 4.2.1 |
+| **Encryption** | AES-256-GCM (SQL credential storage) | — |
 | **Data Processing** | Pandas + NumPy | 2.2.3 / 1.26.4 |
-| **Visualization** | Plotly.js (frontend) + Plotly (backend) | CDN |
-| **Frontend** | React + TypeScript + Vite (+ legacy Vanilla JS SPA) | Latest |
-| **Migrations** | Alembic | 1.14.1 |
-| **Containerisation** | Docker Compose + Kubernetes (HPA) | — |
-| **Observability** | Prometheus + Grafana | Latest |
-| **Logging** | structlog | Latest |
+| **Visualization** | ECharts + Plotly.js | CDN |
+| **Frontend** | React + TypeScript + Vite (+ Vanilla JS SPA) | Latest |
+| **Containerisation** | Docker Compose (22 services) + Kubernetes HPA | — |
+| **Observability** | Prometheus + Grafana (auto-provisioned) | Latest |
+| **Logging** | structlog (structured JSON) | Latest |
 | **Rate Limiting** | slowapi | Latest |
 | **Testing** | pytest + httpx | Latest |
 
@@ -649,6 +662,13 @@ pytest tests/ -v
 
 Built by a team of AI engineers committed to production-grade, enterprise-ready systems.
 
+> An open, composable alternative to **Amazon Q Business** — designed for any organization sitting on fragmented multi-modal data.
+
 ⭐ If this project helped you, please star the repository.
+
+**Full Architecture Documentation:**
+- 🏛️ [Architecture Deep-Dive](NTI_ARCHITECTURE.md) — Clean Architecture, all 4 LangGraph pipelines, security, deployment
+- 📐 [C4 Diagrams](NTI_C4_DIAGRAMS.md) — Context → Container → Component → Code level diagrams
+- 📡 [API Documentation](NTI_API_DOCUMENTATION.md) — All endpoints, request/response schemas, RBAC table
 
 </div>
